@@ -1,8 +1,8 @@
 #!/bin/bash
 # ====================================================================
-# 天网系统 V9.6 终极真理版 (官方直连纯净版 + WARP双栈 + 绝对寿命)
+# 天网系统 V9.6 终极真理版 (官方直连纯净版 + WARP双栈 + 绝对寿命 + 全逻辑回归)
 # ====================================================================
-echo -e "\033[1;31m🔥 正在执行【天网系统 V9.6】全量创世部署 (100% 官方直连纯净版)...\033[0m"
+echo -e "\033[1;31m🔥 正在执行【天网系统 V9.6】全量创世部署 (全逻辑回归修复版)...\033[0m"
 
 # 1. 基础环境与烦人的主机名修复
 echo -e "\033[1;36m📦 1/7 正在修复系统环境与安装依赖...\033[0m"
@@ -12,13 +12,13 @@ apt-get update -y >/dev/null 2>&1
 apt-get install -y curl socat net-tools psmisc wget jq unzip tar openssl nano cron >/dev/null 2>&1
 mkdir -p /etc/s-box/sub2 /etc/s-box/sub3 /etc/s-box/sub4 /etc/s-box/blacklist
 
-# 2. 部署 WARP-GO (打通全球双栈，为后续官方直连铺路)
+# 2. 部署 WARP-GO (打通全球双栈)
 echo -e "\033[1;36m🌐 2/7 正在植入 WARP-GO，获取全球 IPv4 访问权限...\033[0m"
 wget -qN https://gitlab.com/fscarmen/warp/-/raw/main/warp-go.sh
 bash warp-go.sh 4 >/dev/null 2>&1
 sleep 8
 
-# 3. 核心引擎 100% 官方直连拉取 (零第三方代理)
+# 3. 核心引擎 100% 官方直连拉取
 echo -e "\033[1;36m⚙️ 3/7 正在直连官方主库下载核心引擎...\033[0m"
 wget -q --show-progress -O /etc/s-box/psiphon-tunnel-core https://raw.githubusercontent.com/Psiphon-Labs/psiphon-tunnel-core-binaries/master/linux/psiphon-tunnel-core-x86_64
 chmod +x /etc/s-box/psiphon-tunnel-core
@@ -105,106 +105,162 @@ SVC2_EOF
     systemctl enable psiphon${NODE} >/dev/null 2>&1 && systemctl start psiphon${NODE}
 done
 
-# 6. 注入 S/L/SL 引擎
-echo -e "\033[1;36m🧠 6/7 正在注入 S/L/SL 解耦引擎与 S4 旁路程序...\033[0m"
+# 6. 注入 S/L/SL 引擎 (已完美修复引号冲突与逻辑缺失)
+echo -e "\033[1;36m🧠 6/7 正在注入 S/L/SL 解耦引擎...\033[0m"
 for NODE in 1 2 3; do
     [ "$NODE" == "1" ] && { IN_PORT=2081; OUT_PORT=1081; DIR="/etc/s-box"; SVC="psiphon1"; }
     [ "$NODE" == "2" ] && { IN_PORT=2082; OUT_PORT=1082; DIR="/etc/s-box/sub2"; SVC="psiphon2"; }
     [ "$NODE" == "3" ] && { IN_PORT=2083; OUT_PORT=1083; DIR="/etc/s-box/sub3"; SVC="psiphon3"; }
 
-cat << S_EOF > /usr/bin/s${NODE}
+cat << 'EOF' > /usr/bin/s${NODE}
 #!/bin/bash
-NODE="$NODE"; IN_PORT="$IN_PORT"; OUT_PORT="$OUT_PORT"; DIR="$DIR"; SVC="$SVC"; SLA_LOG="/etc/s-box/stability.log"
-echo \$\$ > "\$DIR/s\${NODE}.manual"
-echo "\$(date '+[%m-%d %H:%M:%S]') 🛑 主人手动介入 S\${NODE} 模式！" >> "\$SLA_LOG"
-trap 'echo "\$(date '+[%m-%d %H:%M:%S]') 🔰 主人退出 S\${NODE} 模式！" >> "\$SLA_LOG"; rm -f "\$DIR/s\${NODE}.manual" 2>/dev/null; exit 0' INT TERM EXIT
-clear; echo -e "\033[1;35m🐺 [S\$NODE] 安全抽卡引擎\033[0m"
-OLD_LOCK=\$(cat "\$DIR/s\${NODE}.lock" 2>/dev/null | tr -d '[:space:]')
-[ -n "\$OLD_LOCK" ] && echo -e "🛡️ \033[1;32m当前保底 IP: \$OLD_LOCK\033[0m"
-fuser -k -9 "\$OUT_PORT/tcp" >/dev/null 2>&1
-APIS=("http://api.ipify.org" "http://icanhazip.com" "http://ifconfig.me/ip")
-ATTEMPTS=0
-while true; do
-    ((ATTEMPTS++)); echo -ne "\r\033[K⏳ [\$ATTEMPTS 次] 盲抽中..."
-    systemctl stop "\$SVC" 2>/dev/null; fuser -k -9 "\$IN_PORT/tcp" >/dev/null 2>&1; rm -rf "\$DIR/ca.psiphon"* 2>/dev/null; systemctl start "\$SVC"
-    sleep 6; IP=\$(curl -s -m 5 --socks5 127.0.0.1:\$IN_PORT \${APIS[\$RANDOM % \${#APIS[@]}]} 2>/dev/null | tr -d '[:space:]')
-    [ -z "\$IP" ] && continue
-    echo -e "\n🎯 抽中 IP: \033[32m\$IP\033[0m"
-    read -p "✨ 满意按 [Y] 锁定替换，按 [回车] 重抽: " k
-    if [[ "\$k" == "y" || "\$k" == "Y" ]]; then
-        echo "\$IP" > "\$DIR/s\${NODE}.lock"; date +%s > "\$DIR/s\${NODE}.uptime"
-        echo -e "✅ \033[1;32m新极品已挂锁！\033[0m"; break
-    fi
-done
-S_EOF
+NODE="__NODE__"; IN_PORT="__IN_PORT__"; OUT_PORT="__OUT_PORT__"; DIR="__DIR__"; SVC="__SVC__"; SLA_LOG="/etc/s-box/stability.log"
+echo $$ > "$DIR/s${NODE}.manual"
+echo "$(date '+[%m-%d %H:%M:%S]') 🛑 主人手动介入 S${NODE} 模式！哨兵大管家已挂起。" >> "$SLA_LOG"
+# 💡 完美修复语法冲突：date 内部使用双引号 "+[%m-%d...]"
+trap 'echo "$(date "+[%m-%d %H:%M:%S]") 🔰 主人退出 S${NODE} 模式！哨兵重新接管。" >> "$SLA_LOG"; rm -f "$DIR/s${NODE}.manual" 2>/dev/null; exit 0' INT TERM EXIT HUP QUIT
 
-cat << L_EOF > /usr/bin/l${NODE}
-#!/bin/bash
-NODE="$NODE"; IN_PORT="$IN_PORT"; OUT_PORT="$OUT_PORT"; DIR="$DIR"; SVC="$SVC"; SLA_LOG="/etc/s-box/stability.log"
-echo \$\$ > "\$DIR/s\${NODE}.manual"
-echo "\$(date '+[%m-%d %H:%M:%S]') 🛑 主人手动介入 L\${NODE} 模式！" >> "\$SLA_LOG"
-trap 'echo "\$(date '+[%m-%d %H:%M:%S]') 🔰 主人退出 L\${NODE} 模式！" >> "\$SLA_LOG"; rm -f "\$DIR/s\${NODE}.manual" 2>/dev/null; exit 0' INT TERM EXIT
-clear; echo -e "\033[1;31m🐺 [L\$NODE] 人工狂暴死磕引擎\033[0m"
-TARGET=\$(cat "\$DIR/s\${NODE}.lock" 2>/dev/null | tr -d '[:space:]')
-read -p "🎯 输入死磕IP (回车默认 \$TARGET): " INPUT_IP
-if [[ -n "\$INPUT_IP" && "\$INPUT_IP" != "\$TARGET" ]]; then 
-    TARGET="\$INPUT_IP"; echo "\$TARGET" > "\$DIR/s\${NODE}.lock"; date +%s > "\$DIR/s\${NODE}.uptime"
+clear; echo -e "\033[1;35m╔═════════════════════════════════════════════════╗\n║   🐺 [S${NODE}] 全球鱼塘探测与安全抽卡引擎        ║\n╚═════════════════════════════════════════════════╝\033[0m"
+OLD_LOCK=$(cat "$DIR/s${NODE}.lock" 2>/dev/null | tr -d '[:space:]')
+[ -n "$OLD_LOCK" ] && echo -e "🛡️ \033[1;32m当前保底 IP: $OLD_LOCK\033[0m\n"
+fuser -k -9 "$OUT_PORT/tcp" >/dev/null 2>&1
+APIS=("http://api.ipify.org" "http://icanhazip.com" "http://ifconfig.me/ip")
+
+# 💡 恢复完整逻辑：国家选择与连抽菜单
+echo -e "\033[1;36m🌍 请选择 S${NODE} 本次目标国家池 (底层永久生效)：\033[0m"
+echo "  [1] 🇺🇸 美国 (US)   [2] 🇬🇧 英国 (GB)   [3] 🇯🇵 日本 (JP)   [4] 🇸🇬 新加坡 (SG)"
+read -p "请输入编号 (默认 1): " REG_CHOICE
+case "$REG_CHOICE" in 2) TARGET_REG="GB";; 3) TARGET_REG="JP";; 4) TARGET_REG="SG";; *) TARGET_REG="US";; esac
+sed -i "s/\"EgressRegion\": \"[A-Z]*\"/\"EgressRegion\": \"$TARGET_REG\"/g" $DIR/base.config
+echo -e "✅ 已切换至: \033[1;32m$TARGET_REG\033[0m\n---------------------------------------------------"
+echo "模式：[1] 单抽  [2] 鱼塘连抽"
+read -p "请输入模式 (默认 1): " MODE_CHOICE
+
+if [ "$MODE_CHOICE" == "2" ]; then
+    read -p "连抽次数 (默认 10): " SCAN_MAX; [ -z "$SCAN_MAX" ] && SCAN_MAX=10
+    rm -f "$DIR/tmp_pool.txt"
+    for ((i=1; i<=SCAN_MAX; i++)); do
+        echo -ne "\r\033[K⏳ [$i/$SCAN_MAX] 盲抽中..."
+        systemctl stop "$SVC" 2>/dev/null; fuser -k -9 "$IN_PORT/tcp" >/dev/null 2>&1; rm -rf "$DIR/ca.psiphon"* 2>/dev/null; systemctl start "$SVC"
+        sleep 6; IP=$(curl -s -m 5 --socks5 127.0.0.1:$IN_PORT ${APIS[$RANDOM % ${#APIS[@]}]} 2>/dev/null | tr -d '[:space:]')
+        [ -n "$IP" ] && echo "$IP" >> "$DIR/tmp_pool.txt"
+    done
+    echo -e "\n\n\033[1;32m📊 鱼塘结果:\033[0m"; sort -V "$DIR/tmp_pool.txt" | uniq -c | sort -V
+else
+    ATTEMPTS=0
+    while true; do
+        ((ATTEMPTS++)); echo -ne "\r\033[K⏳ [$ATTEMPTS 次] 盲抽中..."
+        systemctl stop "$SVC" 2>/dev/null; fuser -k -9 "$IN_PORT/tcp" >/dev/null 2>&1; rm -rf "$DIR/ca.psiphon"* 2>/dev/null; systemctl start "$SVC"
+        sleep 6; IP=$(curl -s -m 5 --socks5 127.0.0.1:$IN_PORT ${APIS[$RANDOM % ${#APIS[@]}]} 2>/dev/null | tr -d '[:space:]')
+        [ -z "$IP" ] && continue
+        echo -e "\n🎯 抽中 IP: \033[32m$IP\033[0m"
+        read -p "✨ 满意按 [Y] 锁定替换，按 [回车] 重抽: " k
+        if [[ "$k" == "y" || "$k" == "Y" ]]; then
+            echo "$IP" > "$DIR/s${NODE}.lock"; date +%s > "$DIR/s${NODE}.uptime"
+            echo -e "✅ \033[1;32m新极品已挂锁！\033[0m"; break
+        fi
+    done
 fi
-fuser -k -9 "\$OUT_PORT/tcp" >/dev/null 2>&1
+EOF
+
+cat << 'EOF' > /usr/bin/l${NODE}
+#!/bin/bash
+NODE="__NODE__"; IN_PORT="__IN_PORT__"; OUT_PORT="__OUT_PORT__"; DIR="__DIR__"; SVC="__SVC__"; SLA_LOG="/etc/s-box/stability.log"
+echo $$ > "$DIR/s${NODE}.manual"
+echo "$(date '+[%m-%d %H:%M:%S]') 🛑 主人手动介入 L${NODE} 模式！" >> "$SLA_LOG"
+trap 'echo "$(date "+[%m-%d %H:%M:%S]") 🔰 主人退出 L${NODE} 模式！" >> "$SLA_LOG"; rm -f "$DIR/s${NODE}.manual" 2>/dev/null; exit 0' INT TERM EXIT HUP QUIT
+
+clear; echo -e "\033[1;31m╔═════════════════════════════════════════════════╗\n║   🐺 [L${NODE}] 人工狂暴死磕引擎 (应急介入) ║\n╚═════════════════════════════════════════════════╝\033[0m"
+TARGET=$(cat "$DIR/s${NODE}.lock" 2>/dev/null | tr -d '[:space:]')
+read -p "🎯 输入死磕IP (回车默认 $TARGET): " INPUT_IP
+if [[ -n "$INPUT_IP" && "$INPUT_IP" != "$TARGET" ]]; then 
+    TARGET="$INPUT_IP"; echo "$TARGET" > "$DIR/s${NODE}.lock"; date +%s > "$DIR/s${NODE}.uptime"
+fi
+fuser -k -9 "$OUT_PORT/tcp" >/dev/null 2>&1
 APIS=("http://api.ipify.org" "http://icanhazip.com" "http://ifconfig.me/ip")
 ATTEMPTS=0
 while true; do
-    ((ATTEMPTS++)); echo -ne "\r\033[K⏳ [\$ATTEMPTS 次] 死磕中..."
-    systemctl stop "\$SVC" 2>/dev/null; fuser -k -9 "\$IN_PORT/tcp" >/dev/null 2>&1; rm -rf "\$DIR/ca.psiphon"* 2>/dev/null; systemctl start "\$SVC"
-    sleep 8; IP=\$(curl -s -m 5 --socks5 127.0.0.1:\$IN_PORT \${APIS[\$RANDOM % \${#APIS[@]}]} 2>/dev/null | tr -d '[:space:]')
-    if [ "\$IP" == "\$TARGET" ]; then echo -e "\n🎉 \033[1;31m命中！\$IP\033[0m"; exit 0; fi
+    ((ATTEMPTS++)); echo -ne "\r\033[K⏳ [第 $ATTEMPTS 次] 正在死磕..."
+    systemctl stop "$SVC" 2>/dev/null; fuser -k -9 "$IN_PORT/tcp" >/dev/null 2>&1; rm -rf "$DIR/ca.psiphon"* 2>/dev/null; systemctl start "$SVC"
+    sleep 8; IP=$(curl -s -m 5 --socks5 127.0.0.1:$IN_PORT ${APIS[$RANDOM % ${#APIS[@]}]} 2>/dev/null | tr -d '[:space:]')
+    if [ "$IP" == "$TARGET" ]; then echo -e "\n🎉 \033[1;31m命中目标！$IP\033[0m"; exit 0; fi
 done
-L_EOF
+EOF
 
-cat << SL_EOF > /usr/bin/sl${NODE}
+cat << 'EOF' > /usr/bin/sl${NODE}
 #!/bin/bash
-NODE="$NODE"; IN_PORT="$IN_PORT"; OUT_PORT="$OUT_PORT"; DIR="$DIR"; SVC="$SVC"
+NODE="__NODE__"; IN_PORT="__IN_PORT__"; OUT_PORT="__OUT_PORT__"; DIR="__DIR__"; SVC="__SVC__"
 SLA_LOG="/etc/s-box/stability.log"
-TARGET=\$(cat "\$DIR/s\${NODE}.lock" 2>/dev/null | tr -d '[:space:]'); [ -z "\$TARGET" ] && exit 1
+TARGET=$(cat "$DIR/s${NODE}.lock" 2>/dev/null | tr -d '[:space:]'); [ -z "$TARGET" ] && exit 1
 APIS=("http://api.ipify.org" "http://icanhazip.com" "http://ifconfig.me/ip")
-ATTEMPTS=0; CHASE_START=\$(date +%s)
+ATTEMPTS=0; CHASE_START=$(date +%s)
 while true; do
     ((ATTEMPTS++))
-    if [ -f "\$DIR/s\${NODE}.manual" ]; then rm -f "\$DIR/s\${NODE}.hibernating" 2>/dev/null; exit 0; fi
-    if [ \$((\$(date +%s) - CHASE_START)) -ge 1200 ]; then
-        echo "\$(date '+[%m-%d %H:%M:%S]') 🌙 S\${NODE} 休眠(2小时)..." >> "\$SLA_LOG"
-        touch "\$DIR/s\${NODE}.hibernating"; systemctl stop "\$SVC" 2>/dev/null; sleep 7200
-        rm -f "\$DIR/s\${NODE}.hibernating" 2>/dev/null; CHASE_START=\$(date +%s); ATTEMPTS=0; continue
+    if [ -f "$DIR/s${NODE}.manual" ]; then rm -f "$DIR/s${NODE}.hibernating" 2>/dev/null; exit 0; fi
+    if [ $(($(date +%s) - CHASE_START)) -ge 1200 ]; then
+        echo "$(date '+[%m-%d %H:%M:%S]') 🌙 S${NODE} 休眠(2小时)..." >> "$SLA_LOG"
+        touch "$DIR/s${NODE}.hibernating"; systemctl stop "$SVC" 2>/dev/null; sleep 7200
+        rm -f "$DIR/s${NODE}.hibernating" 2>/dev/null; CHASE_START=$(date +%s); ATTEMPTS=0; continue
     fi
-    sleep \$((RANDOM % 6 + 3))
-    systemctl stop "\$SVC" 2>/dev/null; fuser -k -9 "\$IN_PORT/tcp" >/dev/null 2>&1; rm -rf "\$DIR/ca.psiphon"* 2>/dev/null; systemctl start "\$SVC"
+    sleep $((RANDOM % 6 + 3))
+    systemctl stop "$SVC" 2>/dev/null; fuser -k -9 "$IN_PORT/tcp" >/dev/null 2>&1; rm -rf "$DIR/ca.psiphon"* 2>/dev/null; systemctl start "$SVC"
     IP=""
-    for i in {1..6}; do IP=\$(curl -s -m 3 --socks5 127.0.0.1:\$IN_PORT \${APIS[\$RANDOM % \${#APIS[@]}]} 2>/dev/null | tr -d '[:space:]'); [ -n "\$IP" ] && break; sleep 1; done
-    [ -z "\$IP" ] && continue
-    if [ \$((ATTEMPTS % 3)) -eq 0 ]; then echo "\$(date '+[%m-%d %H:%M:%S]') ⚙️ SL 狂飙... S\${NODE} 第 \$ATTEMPTS 次 (\$IP)" >> "\$SLA_LOG"; fi
-    if [ "\$IP" == "\$TARGET" ]; then
-        rm -f "\$DIR/s\${NODE}.hibernating" 2>/dev/null
-        echo "\$(date '+[%m-%d %H:%M:%S]') 🟢 S\${NODE} 夺回极品 IP！" >> "\$SLA_LOG"
-        socat TCP4-LISTEN:\$OUT_PORT,fork,reuseaddr TCP4:127.0.0.1:\$IN_PORT &
+    for i in {1..6}; do IP=$(curl -s -m 3 --socks5 127.0.0.1:$IN_PORT ${APIS[$RANDOM % ${#APIS[@]}]} 2>/dev/null | tr -d '[:space:]'); [ -n "$IP" ] && break; sleep 1; done
+    [ -z "$IP" ] && continue
+    if [ $((ATTEMPTS % 3)) -eq 0 ]; then echo "$(date '+[%m-%d %H:%M:%S]') ⚙️ SL 狂飙... S${NODE} 第 $ATTEMPTS 次 ($IP)" >> "$SLA_LOG"; fi
+    if [ "$IP" == "$TARGET" ]; then
+        rm -f "$DIR/s${NODE}.hibernating" 2>/dev/null
+        echo "$(date '+[%m-%d %H:%M:%S]') 🟢 S${NODE} 夺回极品 IP！" >> "$SLA_LOG"
+        socat TCP4-LISTEN:$OUT_PORT,fork,reuseaddr TCP4:127.0.0.1:$IN_PORT &
         exit 0
     fi
 done
-SL_EOF
+EOF
+
+    sed -i "s|__NODE__|$NODE|g; s|__IN_PORT__|$IN_PORT|g; s|__OUT_PORT__|$OUT_PORT|g; s|__DIR__|$DIR|g; s|__SVC__|$SVC|g" /usr/bin/s${NODE} /usr/bin/l${NODE} /usr/bin/sl${NODE}
     chmod +x /usr/bin/s${NODE} /usr/bin/l${NODE} /usr/bin/sl${NODE}
 done
 
-cat > /usr/bin/s4 << 'S4_EOF'
+# -------- S4 旁路引擎 (恢复完整战区、黑名单、打捞逻辑) --------
+cat > /usr/bin/s4 << 'EOF'
 #!/bin/bash
-DIR="/etc/s-box/sub4"; SVC="psiphon4"; IN_PORT=2084; APIS=("http://api.ipify.org" "http://icanhazip.com")
-read -p "打捞次数 (默认 20): " SCAN_MAX; [ -z "$SCAN_MAX" ] && SCAN_MAX=20
-ATTEMPTS=0
-while [ $ATTEMPTS -lt $SCAN_MAX ]; do
-    ((ATTEMPTS++)); echo -ne "\r\033[K🔍 [$ATTEMPTS/$SCAN_MAX] 下网..."
-    systemctl stop "$SVC" >/dev/null 2>&1; fuser -k -9 "$IN_PORT/tcp" >/dev/null 2>&1; rm -rf "$DIR/ca.psiphon"* >/dev/null 2>&1; systemctl start "$SVC"; sleep 8
-    IP=$(curl -s -m 5 --socks5 127.0.0.1:$IN_PORT ${APIS[$RANDOM % ${#APIS[@]}]} 2>/dev/null | tr -d '[:space:]')
-    [ -n "$IP" ] && echo -e "\n🌟 捕获: \033[1;32m$IP\033[0m"
-done
-S4_EOF
+DIR="/etc/s-box/sub4"; BLACKLIST_FILE="/etc/s-box/blacklist/bad_ips.txt"; SVC="psiphon4"; IN_PORT=2084
+APIS=("http://api.ipify.org" "http://icanhazip.com" "http://ifconfig.me/ip"); touch "$BLACKLIST_FILE"
+
+trap 'echo -e "\n\033[1;33m🛑 已中止 S4 打捞作业。\033[0m"; exit 0' INT TERM EXIT HUP QUIT
+
+clear; echo -e "\033[1;36m   👻 [S4] 幽灵斥候 - 旁路洗号引擎 \033[0m\n   黑名单数: $(wc -l < $BLACKLIST_FILE 2>/dev/null || echo 0)\n"
+echo "  [1] 启动深海打捞   [2] 管理高级黑名单   [3] 退出"
+read -p "选择 (默认 1): " MENU_CHOICE; [ -z "$MENU_CHOICE" ] && MENU_CHOICE=1
+if [ "$MENU_CHOICE" == "2" ]; then
+    echo -e "\033[1;36m💡 输入 nano 一次性粘贴上千行！\033[0m"; read -p "输入 (回车退出): " INPUT_DATA
+    if [ "$INPUT_DATA" == "nano" ]; then nano "$BLACKLIST_FILE"; else for BAD_IP in $INPUT_DATA; do echo "$BAD_IP" >> "$BLACKLIST_FILE"; done; fi
+    exit 0
+elif [ "$MENU_CHOICE" == "1" ]; then
+    echo "  [1] 🇺🇸 美国 (US)   [2] 🇬🇧 英国 (GB)   [3] 🇯🇵 日本 (JP)"; read -p "战区 (默认 1): " REG_CHOICE
+    [ "$REG_CHOICE" == "1" ] && sed -i 's/"EgressRegion": "[A-Z]*"/"EgressRegion": "US"/' $DIR/base.config
+    [ "$REG_CHOICE" == "2" ] && sed -i 's/"EgressRegion": "[A-Z]*"/"EgressRegion": "GB"/' $DIR/base.config
+    [ "$REG_CHOICE" == "3" ] && sed -i 's/"EgressRegion": "[A-Z]*"/"EgressRegion": "JP"/' $DIR/base.config
+    read -p "打捞次数 (默认 20): " SCAN_MAX; [ -z "$SCAN_MAX" ] && SCAN_MAX=20
+    ATTEMPTS=0; VALID_IPS=()
+    while [ $ATTEMPTS -lt $SCAN_MAX ]; do
+        ((ATTEMPTS++)); echo -ne "\r\033[K🔍 [$ATTEMPTS/$SCAN_MAX] 下网..."
+        systemctl stop "$SVC" >/dev/null 2>&1; fuser -k -9 "$IN_PORT/tcp" >/dev/null 2>&1; rm -rf "$DIR/ca.psiphon"* >/dev/null 2>&1; systemctl start "$SVC"; sleep 8
+        IP=$(curl -s -m 5 --socks5 127.0.0.1:$IN_PORT ${APIS[$RANDOM % ${#APIS[@]}]} 2>/dev/null | tr -d '[:space:]')
+        if [ -n "$IP" ]; then
+            if grep -q "^${IP%.*}\|^\(${IP}\)" "$BLACKLIST_FILE" 2>/dev/null; then echo -e "\n🚫 触发黑名单: $IP"; else echo -e "\n🌟 捕获纯净极品: \033[1;32m$IP\033[0m"; VALID_IPS+=("$IP"); fi
+        fi
+    done
+    echo -e "\n\033[1;33m📊 打捞过滤后获得 ${#VALID_IPS[@]} 个极品。\033[0m"
+    if [ ${#VALID_IPS[@]} -gt 0 ]; then
+        printf "%s\n" "${VALID_IPS[@]}" | sort -V | uniq -c | sort -nr
+        echo "  [1] 全部绞杀 (打入黑名单)   [0] 留着备用 (退出)"; read -p "请裁决: " EXEC_CHOICE
+        if [ "$EXEC_CHOICE" == "1" ]; then printf "%s\n" "${VALID_IPS[@]}" | sort -u >> "$BLACKLIST_FILE"; echo -e "\033[1;32m✅ 已送入黑名单。\033[0m"; fi
+    fi
+fi
+# 退出时恢复 trap 避免触发多余提示
+trap - EXIT
+EOF
 chmod +x /usr/bin/s4
 
 # 7. 注入哨兵大管家
