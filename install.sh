@@ -1,10 +1,10 @@
 #!/bin/bash
 # ====================================================================
-# 天网系统 V9.6 终极真理版 (官方直连纯净版 + WARP双栈 + 绝对寿命 + 全逻辑回归)
+# 天网系统 V9.6 终极真理版 (官方纯净直连 + WARP双栈 + 绝对寿命 + 完美大盘)
 # ====================================================================
-echo -e "\033[1;31m🔥 正在执行【天网系统 V9.6】全量创世部署 (全逻辑回归修复版)...\033[0m"
+echo -e "\033[1;31m🔥 正在执行【天网系统 V9.6】全量创世部署 (全逻辑无损回归版)...\033[0m"
 
-# 1. 基础环境与烦人的主机名修复
+# 1. 基础环境与主机名修复
 echo -e "\033[1;36m📦 1/7 正在修复系统环境与安装依赖...\033[0m"
 MY_HOST=$(hostname)
 echo "127.0.0.1 localhost $MY_HOST" > /etc/hosts
@@ -29,7 +29,7 @@ mv -f /tmp/sing-box-*/sing-box /etc/s-box/sing-box
 chmod +x /etc/s-box/sing-box
 rm -rf /tmp/sbox.tar.gz /tmp/sing-box-*
 
-# 4. 烧录 Sing-box 核心路由
+# 4. 烧录 Sing-box 核心路由 (6大协议入口就绪)
 echo -e "\033[1;36m🚦 4/7 正在烧录 Sing-box 路由与生成 TLS 证书...\033[0m"
 openssl ecparam -genkey -name prime256v1 -out /etc/s-box/hy2.key 2>/dev/null
 openssl req -new -x509 -days 365 -key /etc/s-box/hy2.key -out /etc/s-box/hy2.crt -subj "/CN=bing.com" 2>/dev/null
@@ -105,8 +105,8 @@ SVC2_EOF
     systemctl enable psiphon${NODE} >/dev/null 2>&1 && systemctl start psiphon${NODE}
 done
 
-# 6. 注入 S/L/SL 引擎 (已完美修复引号冲突与逻辑缺失)
-echo -e "\033[1;36m🧠 6/7 正在注入 S/L/SL 解耦引擎...\033[0m"
+# 6. 注入 S/L/SL 引擎 (完整保留菜单逻辑与绝对寿命统计)
+echo -e "\033[1;36m🧠 6/7 正在注入 S/L/SL 战术引擎与旁路幽灵...\033[0m"
 for NODE in 1 2 3; do
     [ "$NODE" == "1" ] && { IN_PORT=2081; OUT_PORT=1081; DIR="/etc/s-box"; SVC="psiphon1"; }
     [ "$NODE" == "2" ] && { IN_PORT=2082; OUT_PORT=1082; DIR="/etc/s-box/sub2"; SVC="psiphon2"; }
@@ -116,18 +116,15 @@ cat << 'EOF' > /usr/bin/s${NODE}
 #!/bin/bash
 NODE="__NODE__"; IN_PORT="__IN_PORT__"; OUT_PORT="__OUT_PORT__"; DIR="__DIR__"; SVC="__SVC__"; SLA_LOG="/etc/s-box/stability.log"
 echo $$ > "$DIR/s${NODE}.manual"
-echo "$(date '+[%m-%d %H:%M:%S]') 🛑 主人手动介入 S${NODE} 模式！哨兵大管家已挂起。" >> "$SLA_LOG"
-# 💡 完美修复语法冲突：date 内部使用双引号 "+[%m-%d...]"
-trap 'echo "$(date "+[%m-%d %H:%M:%S]") 🔰 主人退出 S${NODE} 模式！哨兵重新接管。" >> "$SLA_LOG"; rm -f "$DIR/s${NODE}.manual" 2>/dev/null; exit 0' INT TERM EXIT HUP QUIT
-
+echo "$(date '+[%m-%d %H:%M:%S]') 🛑 主人手动介入 S${NODE} 模式！" >> "$SLA_LOG"
+trap 'echo "$(date "+[%m-%d %H:%M:%S]") 🔰 主人退出 S${NODE} 模式！" >> "$SLA_LOG"; rm -f "$DIR/s${NODE}.manual" 2>/dev/null; exit 0' INT TERM EXIT HUP QUIT
 clear; echo -e "\033[1;35m╔═════════════════════════════════════════════════╗\n║   🐺 [S${NODE}] 全球鱼塘探测与安全抽卡引擎        ║\n╚═════════════════════════════════════════════════╝\033[0m"
 OLD_LOCK=$(cat "$DIR/s${NODE}.lock" 2>/dev/null | tr -d '[:space:]')
 [ -n "$OLD_LOCK" ] && echo -e "🛡️ \033[1;32m当前保底 IP: $OLD_LOCK\033[0m\n"
 fuser -k -9 "$OUT_PORT/tcp" >/dev/null 2>&1
 APIS=("http://api.ipify.org" "http://icanhazip.com" "http://ifconfig.me/ip")
 
-# 💡 恢复完整逻辑：国家选择与连抽菜单
-echo -e "\033[1;36m🌍 请选择 S${NODE} 本次目标国家池 (底层永久生效)：\033[0m"
+echo -e "\033[1;36m🌍 请选择 S${NODE} 本次目标国家池：\033[0m"
 echo "  [1] 🇺🇸 美国 (US)   [2] 🇬🇧 英国 (GB)   [3] 🇯🇵 日本 (JP)   [4] 🇸🇬 新加坡 (SG)"
 read -p "请输入编号 (默认 1): " REG_CHOICE
 case "$REG_CHOICE" in 2) TARGET_REG="GB";; 3) TARGET_REG="JP";; 4) TARGET_REG="SG";; *) TARGET_REG="US";; esac
@@ -169,7 +166,6 @@ NODE="__NODE__"; IN_PORT="__IN_PORT__"; OUT_PORT="__OUT_PORT__"; DIR="__DIR__"; 
 echo $$ > "$DIR/s${NODE}.manual"
 echo "$(date '+[%m-%d %H:%M:%S]') 🛑 主人手动介入 L${NODE} 模式！" >> "$SLA_LOG"
 trap 'echo "$(date "+[%m-%d %H:%M:%S]") 🔰 主人退出 L${NODE} 模式！" >> "$SLA_LOG"; rm -f "$DIR/s${NODE}.manual" 2>/dev/null; exit 0' INT TERM EXIT HUP QUIT
-
 clear; echo -e "\033[1;31m╔═════════════════════════════════════════════════╗\n║   🐺 [L${NODE}] 人工狂暴死磕引擎 (应急介入) ║\n╚═════════════════════════════════════════════════╝\033[0m"
 TARGET=$(cat "$DIR/s${NODE}.lock" 2>/dev/null | tr -d '[:space:]')
 read -p "🎯 输入死磕IP (回车默认 $TARGET): " INPUT_IP
@@ -221,14 +217,11 @@ EOF
     chmod +x /usr/bin/s${NODE} /usr/bin/l${NODE} /usr/bin/sl${NODE}
 done
 
-# -------- S4 旁路引擎 (恢复完整战区、黑名单、打捞逻辑) --------
 cat > /usr/bin/s4 << 'EOF'
 #!/bin/bash
 DIR="/etc/s-box/sub4"; BLACKLIST_FILE="/etc/s-box/blacklist/bad_ips.txt"; SVC="psiphon4"; IN_PORT=2084
 APIS=("http://api.ipify.org" "http://icanhazip.com" "http://ifconfig.me/ip"); touch "$BLACKLIST_FILE"
-
 trap 'echo -e "\n\033[1;33m🛑 已中止 S4 打捞作业。\033[0m"; exit 0' INT TERM EXIT HUP QUIT
-
 clear; echo -e "\033[1;36m   👻 [S4] 幽灵斥候 - 旁路洗号引擎 \033[0m\n   黑名单数: $(wc -l < $BLACKLIST_FILE 2>/dev/null || echo 0)\n"
 echo "  [1] 启动深海打捞   [2] 管理高级黑名单   [3] 退出"
 read -p "选择 (默认 1): " MENU_CHOICE; [ -z "$MENU_CHOICE" ] && MENU_CHOICE=1
@@ -258,31 +251,61 @@ elif [ "$MENU_CHOICE" == "1" ]; then
         if [ "$EXEC_CHOICE" == "1" ]; then printf "%s\n" "${VALID_IPS[@]}" | sort -u >> "$BLACKLIST_FILE"; echo -e "\033[1;32m✅ 已送入黑名单。\033[0m"; fi
     fi
 fi
-# 退出时恢复 trap 避免触发多余提示
 trap - EXIT
 EOF
 chmod +x /usr/bin/s4
 
-# 7. 注入哨兵大管家
-echo -e "\033[1;36m👁️ 7/7 正在组装真理监控大盘与系统守护进程...\033[0m"
+# 7. 注入哨兵大管家 (加入双重校验防手抖判定机制)
+echo -e "\033[1;36m👁️ 7/7 正在组装真理哨兵与完美史记大盘...\033[0m"
 cat > /usr/bin/w_master << 'W_EOF'
 #!/bin/bash
-SLA_LOG="/etc/s-box/stability.log"; APIS=("http://api.ipify.org" "http://icanhazip.com" "http://ifconfig.me/ip")
-echo "$(date '+[%m-%d %H:%M:%S]') 🚀 VPS 系统开机！哨兵接管大盘！" >> "$SLA_LOG"
+SLA_LOG="/etc/s-box/stability.log"
+APIS=("http://api.ipify.org" "http://icanhazip.com" "http://ifconfig.me/ip" "http://ident.me" "http://checkip.amazonaws.com")
+echo "$(date '+[%m-%d %H:%M:%S]') 🚀 VPS 系统开机/重启完成！天网哨兵已上线并重新接管大盘！" >> "$SLA_LOG"
+
+get_node_ip() {
+    local PORT=$1; local IP=""
+    local RAND_API=${APIS[$RANDOM % ${#APIS[@]}]}
+    # 第一次探测 (给足 6 秒容忍度)
+    IP=$(curl -s -m 6 --socks5 127.0.0.1:$PORT $RAND_API 2>/dev/null | tr -d '[:space:]')
+    [ -n "$IP" ] && { echo "$IP"; return; }
+    # 第一次失败，防抖双重校验，换个接口再查一次
+    sleep 2
+    for api in "${APIS[@]}"; do
+        [ "$api" == "$RAND_API" ] && continue
+        IP=$(curl -s -m 6 --socks5 127.0.0.1:$PORT $api 2>/dev/null | tr -d '[:space:]')
+        [ -n "$IP" ] && { echo "$IP"; return; }
+    done
+    echo ""
+}
+
 while true; do
     for NODE in 1 2 3; do
         [ "$NODE" == "1" ] && { IN_PORT=2081; OUT_PORT=1081; WORK="/etc/s-box"; }
         [ "$NODE" == "2" ] && { IN_PORT=2082; OUT_PORT=1082; WORK="/etc/s-box/sub2"; }
         [ "$NODE" == "3" ] && { IN_PORT=2083; OUT_PORT=1083; WORK="/etc/s-box/sub3"; }
-        if [ -f "$WORK/s${NODE}.manual" ]; then if kill -0 $(cat "$WORK/s${NODE}.manual" 2>/dev/null) 2>/dev/null; then continue; fi; rm -f "$WORK/s${NODE}.manual"; fi
-        TARGET=$(cat "$WORK/s${NODE}.lock" 2>/dev/null | tr -d '[:space:]'); [ -z "$TARGET" ] && continue
-        CURRENT=$(curl -s -m 5 --socks5 127.0.0.1:$IN_PORT ${APIS[$RANDOM % ${#APIS[@]}]} 2>/dev/null | tr -d '[:space:]')
+
+        if [ -f "$WORK/s${NODE}.manual" ]; then if kill -0 $(cat "$WORK/s${NODE}.manual" 2>/dev/null | tr -d '[:space:]') 2>/dev/null; then continue; fi; rm -f "$WORK/s${NODE}.manual" 2>/dev/null; fi
+        LOCK="$WORK/s${NODE}.lock"; [ ! -f "$LOCK" ] && continue
+        TARGET=$(cat "$LOCK" | tr -d '[:space:]'); [ -z "$TARGET" ] && continue
+
+        CURRENT=$(get_node_ip $IN_PORT)
         if [[ -n "$CURRENT" && "$CURRENT" == "$TARGET" ]]; then
-            if ! netstat -tlnp 2>/dev/null | grep -q ":$OUT_PORT "; then socat TCP4-LISTEN:$OUT_PORT,fork,reuseaddr TCP4:127.0.0.1:$IN_PORT & fi
-        elif [[ "$CURRENT" != "$TARGET" ]]; then
+            if ! netstat -tlnp 2>/dev/null | grep -q ":$OUT_PORT "; then
+                socat TCP4-LISTEN:$OUT_PORT,fork,reuseaddr TCP4:127.0.0.1:$IN_PORT &
+                echo "$(date '+[%m-%d %H:%M:%S]') 🟢 S${NODE} 利用底层缓存记忆秒连成功！开机/自愈完成，气闸开启！" >> "$SLA_LOG"
+            fi
+        elif [[ -n "$CURRENT" && "$CURRENT" != "$TARGET" ]]; then
             fuser -k -9 "$OUT_PORT/tcp" >/dev/null 2>&1
-            if ! pgrep -f "/usr/bin/sl${NODE}" > /dev/null; then 
-                echo "$(date '+[%m-%d %H:%M:%S]') 🔴 S${NODE} 断连！呼叫后台 SL 追捕！" >> "$SLA_LOG"
+            if ! pgrep -f "/usr/bin/sl${NODE}" > /dev/null; then
+                echo "$(date '+[%m-%d %H:%M:%S]') 🔴 S${NODE} 漂移($CURRENT)！呼叫后台 SL 追捕！" >> "$SLA_LOG"
+                nohup /usr/bin/sl${NODE} >/dev/null 2>&1 &
+                sleep 15
+            fi
+        elif [ -z "$CURRENT" ]; then
+            fuser -k -9 "$OUT_PORT/tcp" >/dev/null 2>&1
+            if ! pgrep -f "/usr/bin/sl${NODE}" > /dev/null; then
+                echo "$(date '+[%m-%d %H:%M:%S]') 🔴 S${NODE} 深度假死(双重探针失联)！斩杀气闸，移交 SL 复苏！" >> "$SLA_LOG"
                 nohup /usr/bin/sl${NODE} >/dev/null 2>&1 &
                 sleep 15
             fi
@@ -306,46 +329,60 @@ WantedBy=multi-user.target
 WSVC_EOF
 systemctl daemon-reload && systemctl enable w_master >/dev/null 2>&1 && systemctl start w_master
 
+# 8. 恢复完美分流版真理大盘
 cat > /usr/bin/myip << 'MYIP_EOF'
 #!/bin/bash
-clear; echo -e "\033[1;36m======================================================================================================\033[0m"
-echo -e "\033[1;37m                             🛡️ 天网系统 9.6 (绝对寿命·纯净直连版) 🛡️\033[0m"
-echo -e "\033[1;36m======================================================================================================\033[0m"
-printf "%-6s | %-16s | %-16s | %-10s | %-14s | %s\n" "通道" "锁定 IP (目标)" "当前真实 IP" "对外气闸" "绝对存活时长" "健康状态"
-echo "------------------------------------------------------------------------------------------------------"
-APIS=("http://api.ipify.org" "http://icanhazip.com")
+clear; echo -e "\033[1;36m=======================================================================================================================\033[0m"
+echo -e "\033[1;37m                                   🛡️ 天网系统 9.6 (全量史记·完美分流版) 🛡️\033[0m"
+echo -e "\033[1;36m=======================================================================================================================\033[0m"
+printf "%-6s | %-6s | %-16s | %-16s | %-10s | %-14s | %s\n" "通道" "国家" "锁定 IP (目标)" "当前真实 IP" "对外气闸" "持续存活时长" "健康状态及行动指示"
+echo "-----------------------------------------------------------------------------------------------------------------------"
+APIS=("http://api.ipify.org" "http://icanhazip.com" "http://ifconfig.me/ip")
 for NODE in 1 2 3; do
     [ "$NODE" == "1" ] && { IN_PORT=2081; OUT_PORT=1081; WORK="/etc/s-box"; REG="S1"; }
     [ "$NODE" == "2" ] && { IN_PORT=2082; OUT_PORT=1082; WORK="/etc/s-box/sub2"; REG="S2"; }
     [ "$NODE" == "3" ] && { IN_PORT=2083; OUT_PORT=1083; WORK="/etc/s-box/sub3"; REG="S3"; }
+    REGION=$(grep -oP '"EgressRegion": "\K[A-Z]+' $WORK/base.config 2>/dev/null || echo "未知")
     TARGET=$(cat "$WORK/s${NODE}.lock" 2>/dev/null | tr -d '[:space:]'); [ -z "$TARGET" ] && TARGET="未锁定"
     CURRENT=$(curl -s -m 5 --socks5 127.0.0.1:$IN_PORT ${APIS[$RANDOM % ${#APIS[@]}]} 2>/dev/null | tr -d '[:space:]')
-    GATE_REAL=$(netstat -tlnp 2>/dev/null | grep -q ":$OUT_PORT " && echo "开启" || echo "熔断")
-    
+    if netstat -tlnp 2>/dev/null | grep -q ":$OUT_PORT "; then GATE_REAL="开启"; else GATE_REAL="熔断"; fi
+
     UPTIME_STR="--:--:--"
     if [ -f "$WORK/s${NODE}.uptime" ] && [ "$TARGET" != "未锁定" ]; then
         START_TIME=$(cat "$WORK/s${NODE}.uptime" 2>/dev/null | tr -d '[:space:]')
-        NOW=$(date +%s); DIFF=$((NOW - START_TIME)); [ $DIFF -lt 0 ] && DIFF=0
-        DAYS=$((DIFF / 86400)); HOURS=$(( (DIFF % 86400) / 3600 )); MINS=$(( (DIFF % 3600) / 60 )); SECS=$((DIFF % 60))
-        if [ "$DAYS" -gt 0 ]; then UPTIME_STR=$(printf "%d天 %02d:%02d:%02d" $DAYS $HOURS $MINS $SECS); else UPTIME_STR=$(printf "%02d:%02d:%02d" $HOURS $MINS $SECS); fi
+        if [[ "$START_TIME" =~ ^[0-9]+$ ]]; then
+            NOW=$(date +%s); DIFF=$((NOW - START_TIME)); [ $DIFF -lt 0 ] && DIFF=0
+            DAYS=$((DIFF / 86400)); HOURS=$(( (DIFF % 86400) / 3600 )); MINS=$(( (DIFF % 3600) / 60 )); SECS=$((DIFF % 60))
+            if [ "$DAYS" -gt 0 ]; then UPTIME_STR=$(printf "%d天 %02d:%02d:%02d" $DAYS $HOURS $MINS $SECS); else UPTIME_STR=$(printf "%02d:%02d:%02d" $HOURS $MINS $SECS); fi
+        fi
     fi
-    
-    if [ -f "$WORK/s${NODE}.manual" ]; then COLOR="\033[1;35m"; GATE="🛑挂起"; STATUS="🛑 人工干预中"
-    elif [ -f "$WORK/s${NODE}.hibernating" ]; then COLOR="\033[1;36m"; GATE="🔴熔断"; STATUS="🌙 深度休眠中"
-    elif pgrep -f "/usr/bin/sl${NODE}" > /dev/null; then COLOR="\033[1;31m"; GATE="🔴熔断"; STATUS="🚨 引擎狂暴寻回中..."
-    elif [ -z "$CURRENT" ]; then COLOR="\033[1;33m"; GATE="🔴熔断"; CURRENT="获取失败"; STATUS="🟡 阻塞等复苏"
-    elif [[ "$GATE_REAL" == "开启" && "$CURRENT" == "$TARGET" ]]; then COLOR="\033[1;32m"; GATE="🟢开启"; STATUS="✅ 极品IP稳固锁定"
-    else COLOR="\033[1;31m"; GATE="🔴熔断"; STATUS="🚨 状态异常！"
+
+    if [ -f "$WORK/s${NODE}.manual" ]; then COLOR="\033[1;35m"; GATE_TEXT="🛑挂起"; UPTIME_STR="人工干预中"; STATUS="🛑 人工干预中 (S / L 模式)"
+    elif [ -f "$WORK/s${NODE}.hibernating" ]; then COLOR="\033[1;36m"; GATE_TEXT="🔴熔断"; UPTIME_STR="深度休眠中"; STATUS="🌙 追捕20分钟未果，深度休眠中 (等待唤醒)"
+    elif pgrep -f "/usr/bin/sl${NODE}" > /dev/null; then COLOR="\033[1;31m"; GATE_TEXT="🔴熔断"; UPTIME_STR="断线追捕中"; STATUS="🚨 气闸熔断！影子 SL 引擎正在后台寻回..."
+    elif [ -z "$CURRENT" ]; then COLOR="\033[1;33m"; GATE_TEXT="🔴熔断"; CURRENT="获取失败"; STATUS="🟡 网络假死阻塞中 (死等复苏，存活累计中)"
+    elif [[ "$GATE_REAL" == "开启" && "$CURRENT" == "$TARGET" ]]; then COLOR="\033[1;32m"; GATE_TEXT="🟢开启"; STATUS="✅ 稳定零泄漏 (极品IP稳固锁定)"
+    else COLOR="\033[1;31m"; GATE_TEXT="🔴熔断"; UPTIME_STR="等待起搏"; STATUS="🚨 状态异常！等待哨兵判定..."
     fi
-    printf "${COLOR}%-6s | %-16s | %-16s | %-10s | %-14s | %s\033[0m\n" "$REG" "$TARGET" "${CURRENT:-空}" "$GATE" "$UPTIME_STR" "$STATUS"
+    printf "${COLOR}%-6s | %-6s | %-16s | %-16s | %-10s | %-14s | %s\033[0m\n" "$REG" "$REGION" "$TARGET" "${CURRENT:-空}" "$GATE_TEXT" "$UPTIME_STR" "$STATUS"
 done
-echo -e "\033[1;36m======================================================================================================\033[0m"
-if [ "$1" == "--live" ]; then grep "^\[$(date '+%m-%d')" /etc/s-box/stability.log | tail -n 12 2>/dev/null || echo -e "\033[1;90m暂无记录\033[0m"
-else grep "^\[$(date '+%m-%d')" /etc/s-box/stability.log | grep -v "⚙️ SL 狂飙" | tail -n 50 2>/dev/null || echo -e "\033[1;90m暂无记录\033[0m"; fi
-echo -e "\033[1;36m======================================================================================================\033[0m"
+echo -e "\033[1;36m=======================================================================================================================\033[0m"
+echo -e "\033[1;37m                                   📋 当日核心行动日志 (全天无删减史记)                               \033[0m"
+echo -e "\033[1;36m=======================================================================================================================\033[0m"
+
+TODAY=$(date '+%m-%d')
+if [ "$1" == "--live" ]; then
+    grep "^\[$TODAY" /etc/s-box/stability.log | tail -n 15 2>/dev/null || echo -e "\033[1;90m   今日暂无行动记录...\033[0m"
+else
+    LOG_CONTENT=$(grep "^\[$TODAY" /etc/s-box/stability.log | grep -v "⚙️ SL 狂飙追捕中" 2>/dev/null)
+    if [ -z "$LOG_CONTENT" ]; then echo -e "\033[1;90m   今日暂无行动记录...\033[0m"
+    else echo "$LOG_CONTENT"
+    fi
+fi
+echo -e "\033[1;36m=======================================================================================================================\033[0m"
 MYIP_EOF
 chmod +x /usr/bin/myip; ln -sf /usr/bin/myip /usr/bin/c
 echo '#!/bin/bash' > /usr/bin/ss && echo 'export LANG=C.UTF-8' >> /usr/bin/ss && echo 'watch -c -n 5 /usr/bin/myip --live' >> /usr/bin/ss && chmod +x /usr/bin/ss
 
 (crontab -l 2>/dev/null | grep -v "/sbin/reboot"; echo "0 4 * * * /sbin/reboot") | crontab -
-echo -e "\n\033[1;32m🎉 【天网系统 V9.6 终极真理版】纯净官方直连部署完毕！请直接敲入 ss 查看大盘！\033[0m"
+echo -e "\n\033[1;32m🎉 【天网系统 V9.6 终极真理版】纯净官方直连 + 史记大盘恢复部署完毕！\033[0m"
