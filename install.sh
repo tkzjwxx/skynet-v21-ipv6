@@ -1,8 +1,8 @@
 #!/bin/bash
 # ====================================================================
-# 天网系统 V10.14 (全量对齐官方最新版 v1.21.0 | 强力熔断防卡死)
+# 天网系统 V10.15 (最终封卷版 | 动态API精准捕获最新版·绝不报错)
 # ====================================================================
-echo -e "\033[1;31m🔥 正在执行【天网 V10.14】全量创世重筑 (对齐最新稳定版)...\033[0m"
+echo -e "\033[1;31m🔥 正在执行【天网 V10.15】全量创世重筑 (动态API捕获版)...\033[0m"
 
 # 0. 强力拔除 HAX 废弃源
 sed -i '/virtuozzo/d' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
@@ -17,36 +17,51 @@ apt-get update -y >/dev/null 2>&1
 apt-get install -y curl socat net-tools psmisc wget jq unzip tar openssl cron >/dev/null 2>&1
 mkdir -p /etc/s-box/sub2 /etc/s-box/sub3
 
-# 3. 核心组件打捞 (百分百对齐官方最新版 v1.21.0)
+# 3. 核心组件打捞 (百分百动态对齐官方最新版)
 echo -e "\033[1;33m📦 正在打捞底层核心组件...\033[0m"
 wget -T 15 -t 3 -q --show-progress -O /etc/s-box/psiphon-tunnel-core https://raw.githubusercontent.com/Psiphon-Labs/psiphon-tunnel-core-binaries/master/linux/psiphon-tunnel-core-x86_64
 chmod +x /etc/s-box/psiphon-tunnel-core
 
-# 🚨 绝对服从事实：锁定官网最新版 v1.21.0
-S_VER="1.21.0"
-S_PATH="SagerNet/sing-box/releases/download/v${S_VER}/sing-box-${S_VER}-linux-amd64.tar.gz"
+# 🚨 动态获取官方最新版本号
+echo -ne "正在向 GitHub API 请求最新版本信息... "
+S_VER=$(curl -s --connect-timeout 5 "https://api.github.com/repos/SagerNet/sing-box/releases/latest" | grep -oP '"tag_name": "v\K[^"]*')
 
-# 使用三大高速镜像池
+if [ -z "$S_VER" ]; then
+    echo -e "[\033[1;33mAPI受限，启用最新保底版本\033[0m]"
+    S_VER="1.13.3"
+else
+    echo -e "[\033[1;32m成功锁定最新版 v$S_VER\033[0m]"
+fi
+
+S_FILE="sing-box-${S_VER}-linux-amd64.tar.gz"
+S_PATH="SagerNet/sing-box/releases/download/v${S_VER}/${S_FILE}"
+
+# 使用四大顶级高速镜像池
 URLS=(
     "https://ghfast.top/https://github.com/$S_PATH"
     "https://ghproxy.net/https://github.com/$S_PATH"
+    "https://ghp.ci/https://github.com/$S_PATH"
     "https://github.com/$S_PATH"
 )
 
 SUCCESS=false
 for url in "${URLS[@]}"; do
-    echo -e "正在尝试拉取源: \033[1;36m$url\033[0m"
+    echo -e "正在拉取: \033[1;36m$url\033[0m"
     wget -T 15 -t 2 -q --show-progress -O /tmp/sbox.tar.gz "$url"
-    if [ -s /tmp/sbox.tar.gz ]; then
-        tar -xzf /tmp/sbox.tar.gz -C /tmp/ && mv -f /tmp/sing-box-*/sing-box /etc/s-box/sing-box 2>/dev/null
+    
+    # 🚨 终极防呆校验：检查下载下来的包是不是真实的 tar.gz 文件 (防止被重定向到错误网页)
+    if [ -s /tmp/sbox.tar.gz ] && tar -tzf /tmp/sbox.tar.gz >/dev/null 2>&1; then
+        tar -xzf /tmp/sbox.tar.gz -C /tmp/ 2>/dev/null
+        mv -f /tmp/sing-box-*/sing-box /etc/s-box/sing-box 2>/dev/null
         if [ -f /etc/s-box/sing-box ]; then
             chmod +x /etc/s-box/sing-box
-            echo -e "\033[1;32m✅ Sing-box 核心 (v1.21.0) 拉取并解压成功！\033[0m"
+            echo -e "\033[1;32m✅ Sing-box 核心 (v$S_VER) 拉取并解压成功！\033[0m"
             SUCCESS=true
             break
         fi
     fi
-    echo -e "\033[1;31m⚠️ 当前源超时或失效，正在切换...\033[0m"
+    echo -e "\033[1;31m⚠️ 当前源拉取失败或文件已损坏，正在切换...\033[0m"
+    rm -f /tmp/sbox.tar.gz
 done
 
 # 熔断机制：如果下载失败，立即终止！
@@ -88,7 +103,7 @@ openssl ecparam -genkey -name prime256v1 -out /etc/s-box/hy2.key 2>/dev/null
 openssl req -new -x509 -days 365 -key /etc/s-box/hy2.key -out /etc/s-box/hy2.crt -subj "/CN=bing.com" 2>/dev/null
 cat > /etc/systemd/system/sing-box.service << 'SVC_EOF'
 [Unit]
-Description=Sing-box
+Description=Sing-box Service
 After=network.target
 [Service]
 ExecStart=/etc/s-box/sing-box run -c /etc/s-box/sing-box.json
@@ -189,7 +204,7 @@ cat << 'EOF' > /usr/bin/c
 SLA_LOG="/etc/s-box/stability.log"
 draw_ui() {
     clear; echo -e "\033[1;36m=======================================================================================================================\033[0m"
-    echo -e "\033[1;37m                                   🛡️ 天网系统 V10.14 (最终卷 · 真理大盘) 🛡️\033[0m"
+    echo -e "\033[1;37m                                   🛡️ 天网系统 V10.15 (最终卷 · 真理大盘) 🛡️\033[0m"
     echo -e "\033[1;36m=======================================================================================================================\033[0m"
     printf "%-6s | %-6s | %-16s | %-16s | %-10s | %-14s | %s\n" "通道" "国家" "锁定 IP (目标)" "当前真实 IP" "对外气闸" "持续存活时长" "健康状态及行动指示"
     echo "-----------------------------------------------------------------------------------------------------------------------"
@@ -289,4 +304,4 @@ chmod +x /usr/bin/u
 # 11. 凌晨 4 点重启任务
 (crontab -l 2>/dev/null | grep -v "stability.log"; echo "0 4 * * * echo \"\$(date '+[%m-%d %H:%M:%S]') 🚀 === 凌晨 4:00 重置，开启新史记 ===\" > /etc/s-box/stability.log && /sbin/reboot") | crontab -
 
-echo -e "\n\033[1;32m🎉 天网系统 V10.14 部署完毕！最新版本 v1.21.0 已挂载。\033[0m"
+echo -e "\n\033[1;32m🎉 天网系统 V10.15 部署完毕！\033[0m"
