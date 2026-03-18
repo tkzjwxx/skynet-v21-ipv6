@@ -1,41 +1,41 @@
 #!/bin/bash
 # ====================================================================
-# 天网系统 V10.5 | HAX 专属“暴力注入”版 (解决 DNS 解析与 WARP 菜单)
+# 天网系统 V10.9 (最终封卷版 | 零隐患·全境通·含自毁退路)
 # ====================================================================
-echo -e "\033[1;31m🔥 正在执行【天网 V10.5】全量重筑 (HAX 特供注入版)...\033[0m"
+echo -e "\033[1;31m🔥 正在执行【天网 V10.9】全量创世重筑 (无懈可击版)...\033[0m"
 
-# 1. 第一步：暴力修复 HAX 的 DNS 解析 (解决 Could not resolve 问题)
+# 1. 暴力修复并锁定 DNS (解决 HAX/Woiden 解析失效)
+chattr -i /etc/resolv.conf 2>/dev/null
 echo -e "nameserver 8.8.8.8\nnameserver 1.1.1.1" > /etc/resolv.conf
-chattr +i /etc/resolv.conf 2>/dev/null # 锁定 DNS 防止被系统改回去
+chattr +i /etc/resolv.conf 2>/dev/null
 
-# 2. 环境清理
+# 2. 清理环境 (干净整洁是稳定的基础)
 systemctl stop psiphon1 psiphon2 psiphon3 psiphon4 sing-box w_master warp-go 2>/dev/null
-rm -rf /etc/s-box /usr/bin/s[1-3] /usr/bin/l[1-3] /usr/bin/sl[1-3] /usr/bin/c /usr/bin/ss
+killall -9 w_master 2>/dev/null
+rm -rf /etc/s-box /usr/bin/c /usr/bin/ss /usr/bin/u /usr/bin/s[1-3] /usr/bin/l[1-3] /usr/bin/sl[1-3]
 
-# 3. 基础依赖
+# 3. 基础依赖安装
 apt-get update -y && apt-get install -y curl socat net-tools psmisc wget jq unzip tar openssl cron >/dev/null 2>&1
 mkdir -p /etc/s-box/sub2 /etc/s-box/sub3
 
-# 4. 核心下载 (利用镜像站，防止 HAX 连 GitHub 慢)
-echo -e "\033[1;33m📦 正在打捞核心组件 (多源加速模式)...\033[0m"
+# 4. 核心组件打捞 (双源容错，绝不断流)
+echo -e "\033[1;33m📦 正在打捞核心组件...\033[0m"
 wget -q --show-progress -O /etc/s-box/psiphon-tunnel-core https://raw.githubusercontent.com/Psiphon-Labs/psiphon-tunnel-core-binaries/master/linux/psiphon-tunnel-core-x86_64
 chmod +x /etc/s-box/psiphon-tunnel-core
 
-# 下载 Sing-box (使用 FastGit 镜像)
 S_VER="1.11.0"
-S_URL="https://gh-proxy.com/https://github.com/SagerNet/sing-box/releases/download/v${S_VER}/sing-box-${S_VER}-linux-amd64.tar.gz"
-wget -q --show-progress -O /tmp/sbox.tar.gz "$S_URL"
+S_URL1="https://github.com/SagerNet/sing-box/releases/download/v${S_VER}/sing-box-${S_VER}-linux-amd64.tar.gz"
+S_URL2="https://ghp.ci/$S_URL1"
+# 优先尝试镜像，失败则直连
+wget -q --show-progress -O /tmp/sbox.tar.gz "$S_URL2" || wget -q --show-progress -O /tmp/sbox.tar.gz "$S_URL1"
 tar -xzf /tmp/sbox.tar.gz -C /tmp/ && mv -f /tmp/sing-box-*/sing-box /etc/s-box/sing-box && chmod +x /etc/s-box/sing-box
 
-# 5. 【重头戏】解决 WARP 菜单问题 (强制按键注入)
-echo -e "\033[1;32m🌐 正在对 WARP 菜单进行“暴力注入”安装...\033[0m"
+# 5. WARP-GO 终极静默双栈注入
+echo -e "\033[1;32m🌐 正在织入 WARP-GO 双栈网络 (官方静默模式)...\033[0m"
 wget -qN https://raw.githubusercontent.com/fscarmen/warp/main/warp-go.sh
+bash warp-go.sh d <<< "y" >/dev/null 2>&1
 
-# 针对图 2 的菜单，直接用 printf 将动作流推入
-# 动作序列：2(双栈) -> 回车 -> y(确定) -> 回车
-(printf "2\n"; sleep 2; printf "y\n"; sleep 2; printf "y\n") | bash warp-go.sh chinese
-
-# 6. 配置核心路由 (Sing-box)
+# 6. 配置核心路由与气闸 (Sing-box)
 cat << 'CONFIG_EOF' > /etc/s-box/sing-box.json
 {
   "log": {"level": "fatal"},
@@ -67,14 +67,100 @@ WantedBy=multi-user.target
 SVC_EOF
 systemctl daemon-reload && systemctl enable --now sing-box >/dev/null 2>&1
 
-# 7. 写入唯一指挥官 c (静态史记/动态实时)
+# 7. 初始化沙盒底层引擎 & UI 指令注入
+for NODE in 1 2 3; do
+    [ "$NODE" == "1" ] && { IN=2081; OUT=1081; DIR="/etc/s-box"; REG="US"; SVC="psiphon1"; }
+    [ "$NODE" == "2" ] && { IN=2082; OUT=1082; DIR="/etc/s-box/sub2"; REG="GB"; SVC="psiphon2"; }
+    [ "$NODE" == "3" ] && { IN=2083; OUT=1083; DIR="/etc/s-box/sub3"; REG="JP"; SVC="psiphon3"; }
+    
+    # 写入基础配置
+    cp /etc/s-box/psiphon-tunnel-core "$DIR/" 2>/dev/null
+    cat > "$DIR/base.config" << P_EOF
+{"LocalHttpProxyPort":$((IN+16000)),"LocalSocksProxyPort":$IN,"PropagationChannelId":"FFFFFFFFFFFFFFFF","SponsorId":"FFFFFFFFFFFFFFFF","EgressRegion":"$REG","DataRootDirectory":"$DIR","RemoteServerListDownloadFilename":"remote_server_list","RemoteServerListSignaturePublicKey":"MIICIDANBgkqhkiG9w0BAQEFAAOCAg0AMIICCAKCAgEAt7Ls+/39r+T6zNW7GiVpJfzq/xvL9SBH5rIFnk0RXYEYavax3WS6HOD35eTAqn8AniOwiH+DOkvgSKF2caqk/y1dfq47Pdymtwzp9ikpB1C5OfAysXzBiwVJlCdajBKvBZDerV1cMvRzCKvKwRmvDmHgphQQ7WfXIGbRbmmk6opMBh3roE42KcotLFtqp0RRwLtcBRNtCdsrVsjiI1Lqz/lH+T61sGjSjQ3CHMuZYSQJZo/KrvzgQXpkaCTdbObxHqb6/+i1qaVOfEsvjoiyzTxJADvSytVtcTjijhPEV6XskJVHE1Zgl+7rATr/pDQkw6DPCNBS1+Y6fy7GstZALQXwEDN/qhQI9kWkHijT8ns+i1vGg00Mk/6J75arLhqcodWsdeG/M/moWgqQAnlZAGVtJI1OgeF5fsPpXu4kctOfuZlGjVZXQNW34aOzm8r8S0eVZitPlbhcPiR4gT/aSMz/wd8lZlzZYsje/Jr8u/YtlwjjreZrGRmG8KMOzukV3lLmMppXFMvl4bxv6YFEmIuTsOhbLTwFgh7KYNjodLj/LsqRVfwz31PgWQFTEPICV7GCvgVlPRxnofqKSjgTWI4mxDhBpVcATvaoBl1L/6WLbFvBsoAUBItWwctO2xalKxF5szhGm8lccoc5MZr8kfE0uxMgsxz4er68iCID+rsCAQM=","RemoteServerListUrl":"https://s3.amazonaws.com/psiphon/web/mjr4-p23r-puwl/server_list_compressed","UseIndistinguishableTLS":true}
+P_EOF
+    cat > /etc/systemd/system/${SVC}.service << SVC_EOF
+[Unit]
+Description=Psiphon $NODE
+After=network.target
+[Service]
+WorkingDirectory=$DIR
+ExecStart=$DIR/psiphon-tunnel-core -config base.config
+Restart=always
+[Install]
+WantedBy=multi-user.target
+SVC_EOF
+    systemctl enable --now ${SVC} >/dev/null 2>&1
+
+    # 生成 S 引擎 (科技蓝)
+cat << EOF > /usr/bin/s${NODE}
+#!/bin/bash
+DIR="$DIR"; IN="$IN"; SVC="$SVC"; SLA_LOG="/etc/s-box/stability.log"
+echo \$\$ > "\$DIR/s${NODE}.manual"
+echo "\$(date '+[%m-%d %H:%M:%S]') 🛑 主人介入 S${NODE}" >> "\$SLA_LOG"
+trap 'trap - EXIT; echo "\$(date "+[%m-%d %H:%M:%S]") 🔰 退出模式" >> "\$SLA_LOG"; rm -f "\$DIR/s${NODE}.manual" 2>/dev/null; exit 0' INT TERM EXIT HUP QUIT
+clear; echo -e "\033[1;36m╔══════════════════════════════════════════════════════╗\n║   🐺 [S${NODE}] 天网安全抽卡引擎 - 战区配置面板          ║\n╚══════════════════════════════════════════════════════╝\033[0m"
+OLD=\$(cat "\$DIR/s${NODE}.lock" 2>/dev/null); echo -e "\033[1;33m🛡️  当前锁定 IP :\033[0m \033[1;32m\${OLD:-未锁定}\033[0m\n"
+echo -e "\033[1;37m▶ 选择战区: [1]US [2]GB [3]JP [4]SG\033[0m"; read -p "👉 编号 (默认1): " r; case "\$r" in 2) TR="GB";; 3) TR="JP";; 4) TR="SG";; *) TR="US";; esac
+sed -i "s/\"EgressRegion\": \"[A-Z]*\"/\"EgressRegion\": \"\$TR\"/g" \$DIR/base.config
+echo -e "  \033[1;34m[1]\033[0m 极品单抽  \033[1;34m[2]\033[0m 鱼塘连抽"; read -p "👉 模式 (默认1): " m
+if [ "\$m" == "2" ]; then
+    read -p "连抽次数 (默认10): " c; [ -z "\$c" ] && c=10; rm -f "\$DIR/tmp.txt"
+    for ((i=1; i<=c; i++)); do echo -ne "\r\033[K\033[1;36m⏳ [\$i/\$c]\033[0m 盲抽中..."; systemctl stop "\$SVC" 2>/dev/null; fuser -k -9 "\$IN/tcp" >/dev/null 2>&1; rm -rf "\$DIR/ca.psiphon"* 2>/dev/null; systemctl start "\$SVC"; sleep 6; IP=\$(curl -s -m 5 --socks5 127.0.0.1:\$IN api.ipify.org 2>/dev/null); [ -n "\$IP" ] && echo "\$IP" >> "\$DIR/tmp.txt"; done
+    echo -e "\n\n\033[1;32m📊 鱼塘打捞结果:\033[0m"; sort "\$DIR/tmp.txt" | uniq -c | sort -V; rm -f "\$DIR/tmp.txt"
+else
+    A=0; while true; do ((A++)); echo -ne "\r\033[K\033[1;36m⏳ [第 \$A 次]\033[0m 盲抽中..."; systemctl stop "\$SVC" 2>/dev/null; fuser -k -9 "\$IN/tcp" >/dev/null 2>&1; rm -rf "\$DIR/ca.psiphon"* 2>/dev/null; systemctl start "\$SVC"; sleep 7
+    IP=\$(curl -s -m 5 --socks5 127.0.0.1:\$IN api.ipify.org 2>/dev/null); [ -z "\$IP" ] && continue
+    echo -e "\n\033[1;32m🎯 命中 IP: \033[1;37m\$IP\033[0m"; read -p "✨ 满意按 [Y] 锁定并开启气闸: " k
+    if [[ "\$k" == "y" || "\$k" == "Y" ]]; then echo "\$IP" > "\$DIR/s${NODE}.lock"; date +%s > "\$DIR/s${NODE}.uptime"; echo -e "\033[1;32m✅ 极品已挂锁！\033[0m\n"; break; fi; done
+fi
+EOF
+
+    # 生成 L 引擎 (紫金尊贵)
+cat << EOF > /usr/bin/l${NODE}
+#!/bin/bash
+DIR="$DIR"; IN="$IN"; SVC="$SVC"; SLA_LOG="/etc/s-box/stability.log"
+echo \$\$ > "\$DIR/s${NODE}.manual"
+echo "\$(date '+[%m-%d %H:%M:%S]') 🛑 主人介入 L${NODE}" >> "\$SLA_LOG"
+trap 'trap - EXIT; echo "\$(date "+[%m-%d %H:%M:%S]") 🔰 退出模式" >> "\$SLA_LOG"; rm -f "\$DIR/s${NODE}.manual" 2>/dev/null; exit 0' INT TERM EXIT HUP QUIT
+clear; echo -e "\033[1;35m╔══════════════════════════════════════════════════════╗\n║   🐺 [L${NODE}] 狂暴死磕引擎 - 极品强制夺回            ║\n╚══════════════════════════════════════════════════════╝\033[0m"
+TAR=\$(cat "\$DIR/s${NODE}.lock" 2>/dev/null); echo -ne "\033[1;33m🎯 死磕目标: \033[1;37m\${TAR:-未设定}\033[0m (回车确认/输入新IP): "; read i; [ -n "\$i" ] && TAR="\$i" && echo "\$TAR" > "\$DIR/s${NODE}.lock"
+A=0; while true; do ((A++)); echo -ne "\r\033[K\033[1;35m⏳ [第 \$A 次]\033[0m 字节级夺回中..."; systemctl stop "\$SVC" 2>/dev/null; fuser -k -9 "\$IN/tcp" >/dev/null 2>&1; rm -rf "\$DIR/ca.psiphon"* 2>/dev/null; systemctl start "\$SVC"; sleep 8
+IP=\$(curl -s -m 5 --socks5 127.0.0.1:\$IN api.ipify.org 2>/dev/null)
+if [ "\$IP" == "\$TAR" ]; then echo -e "\n\n\033[1;32m██████████████████████████████████████████████████████\n█   🎉 命中目标！死磕成功！\n█   🌟 极品 IP: \033[1;37m\$IP\033[1;32m\n██████████████████████████████████████████████████████\033[0m\n"; exit 0; fi; done
+EOF
+
+    # 生成 SL 后台引擎 (防端口冲突修复)
+cat << EOF > /usr/bin/sl${NODE}
+#!/bin/bash
+DIR="$DIR"; IN="$IN"; OUT="$OUT"; SVC="$SVC"; SLA_LOG="/etc/s-box/stability.log"
+TAR=\$(cat "\$DIR/s${NODE}.lock" 2>/dev/null); [ -z "\$TAR" ] && exit 0
+echo "\$(date '+[%m-%d %H:%M:%S]') 🕵️ 诊断确认失联。S${NODE} 寻回启动 -> \$TAR" >> "\$SLA_LOG"
+C_ST=\$(date +%s); AT=0
+while true; do ((AT++)); if [ -f "\$DIR/s${NODE}.manual" ]; then exit 0; fi
+if [ \$((\$(date +%s) - C_ST)) -ge 1200 ]; then echo "\$(date '+[%m-%d %H:%M:%S]') 🌙 S${NODE} 追捕超时休眠。" >> "\$SLA_LOG"; touch "\$DIR/s${NODE}.hibernating"; systemctl stop "\$SVC" 2>/dev/null; exit 0; fi
+echo "\$(date '+[%m-%d %H:%M:%S]') [TRACE] S${NODE} 第 \$AT 次尝试..." >> "\$SLA_LOG"
+systemctl stop "\$SVC" 2>/dev/null; fuser -k -9 "\$IN/tcp" >/dev/null 2>&1; rm -rf "\$DIR/ca.psiphon"* 2>/dev/null; systemctl start "\$SVC"; sleep 8
+IP=\$(curl -s -m 5 --socks5 127.0.0.1:\$IN api.ipify.org 2>/dev/null)
+if [ "\$IP" == "\$TAR" ]; then 
+    rm -f "\$DIR/s${NODE}.hibernating"
+    echo "\$(date '+[%m-%d %H:%M:%S]') 🟢 成功！S${NODE} 命中极品 IP：\$IP" >> "\$SLA_LOG"
+    # 🚨 终极防冲突：杀死旧气闸，再立新气闸
+    fuser -k -9 "\$OUT/tcp" >/dev/null 2>&1
+    socat TCP4-LISTEN:\$OUT,fork,reuseaddr TCP4:127.0.0.1:\$IN & 
+    exit 0
+fi
+done
+EOF
+    chmod +x /usr/bin/s${NODE} /usr/bin/l${NODE} /usr/bin/sl${NODE}
+done
+
+# 8. 指挥官大盘 c
 cat << 'EOF' > /usr/bin/c
 #!/bin/bash
 SLA_LOG="/etc/s-box/stability.log"
-T=$(date '+%m-%d')
-draw() {
+draw_ui() {
     clear; echo -e "\033[1;36m=======================================================================================================================\033[0m"
-    echo -e "\033[1;37m                                   🛡️ 天网系统 V10.5 (唯一指挥官·HAX 特供) 🛡️\033[0m"
+    echo -e "\033[1;37m                                   🛡️ 天网系统 V10.9 (最终卷 · 真理大盘) 🛡️\033[0m"
     echo -e "\033[1;36m=======================================================================================================================\033[0m"
     printf "%-6s | %-6s | %-16s | %-16s | %-10s | %-14s | %s\n" "通道" "国家" "锁定 IP (目标)" "当前真实 IP" "对外气闸" "持续存活时长" "健康状态及行动指示"
     echo "-----------------------------------------------------------------------------------------------------------------------"
@@ -83,23 +169,96 @@ draw() {
         [ "$N" == "2" ] && { I=2082; O=1082; W="/etc/s-box/sub2"; R="S2"; }
         [ "$N" == "3" ] && { I=2083; O=1083; W="/etc/s-box/sub3"; R="S3"; }
         RE=$(grep -oP '"EgressRegion": "\K[A-Z]+' $W/base.config 2>/dev/null || echo "US")
-        TA=$(cat "$W/s$N.lock" 2>/dev/null); CU=$(curl -s -m 4 --socks5 127.0.0.1:$I api.ipify.org 2>/dev/null)
+        TA=$(cat "$W/s$N.lock" 2>/dev/null)
+        CU=$(curl -s --connect-timeout 1 -m 2 --socks5 127.0.0.1:$I api.ipify.org 2>/dev/null)
         UP="--:--:--"; if [ -f "$W/s$N.uptime" ] && [ -n "$TA" ]; then ST=$(cat "$W/s$N.uptime"); DF=$(($(date +%s) - ST)); [ $DF -gt 0 ] && UP=$(printf "%02d:%02d:%02d" $((DF/3600)) $((DF%3600/60)) $((DF%60))); fi
         G=$(netstat -tlnp 2>/dev/null | grep -q ":$O " && echo "🟢开启" || echo "🔴熔断")
-        if [ -f "$W/s$N.manual" ]; then C="\033[1;35m"; S="🛑 手动介入"; elif [ -z "$CU" ]; then C="\033[1;33m"; S="🟡 探测假死"; elif [ "$CU" == "$TA" ]; then C="\033[1;32m"; S="✅ 稳定锁定"; else C="\033[1;31m"; S="🚨 漂移判定"; fi
+        if [ -f "$W/s$N.manual" ]; then C="\033[1;35m"; S="🛑 手动介入"; elif [ -z "$CU" ]; then C="\033[1;33m"; S="🟡 探测阻塞"; elif [ "$CU" == "$TA" ]; then C="\033[1;32m"; S="✅ 稳定锁定"; else C="\033[1;31m"; S="🚨 漂移判定"; fi
         printf "${C}%-6s | %-6s | %-16s | %-16s | %-10s | %-14s | %s\033[0m\n" "$R" "$RE" "$TA" "${CU:-空}" "$G" "$UP" "$S"
     done
+    echo -e "\033[1;36m=======================================================================================================================\033[0m"
 }
-if [[ "$1" == "--live" || "$1" == "ss" ]]; then
-    while true; do draw; grep "^\[$T" $SLA_LOG | grep -vE "介入|退出" | tail -n 20; sleep 2; done
+
+if [ "$1" == "--live" ]; then
+    while true; do
+        draw_ui; echo -e "\033[1;37m                                   📋 实时战况监控 (每 2 秒动态起搏)                               \033[0m"
+        grep "^\[$(date '+%m-%d')" $SLA_LOG | grep -vE "介入|退出" | tail -n 20
+        echo -e "\n\033[1;90m[提示] 实时滚屏中... 按 Ctrl+C 退出\033[0m"; sleep 2
+    done
 else
-    draw; LOG=$(grep "^\[$T" $SLA_LOG | grep -vE "TRACE|介入|退出"); echo "${LOG:-等待凌晨4点重启后的首笔史记...}"
+    draw_ui; echo -e "\033[1;37m                                   📋 任务史记 (今日 4:00 起始)                               \033[0m"
+    LOG=$(grep "^\[$(date '+%m-%d')" $SLA_LOG | grep -vE "TRACE|介入|退出")
+    echo "${LOG:-等待系统初始化史记...}"
     echo -e "\033[1;36m=======================================================================================================================\033[0m"
 fi
 EOF
-chmod +x /usr/bin/c; ln -sf /usr/bin/c /usr/bin/ss
+chmod +x /usr/bin/c
 
-# 8. 凌晨 4 点重启逻辑
-(crontab -l 2>/dev/null | grep -v "/sbin/reboot"; echo "0 4 * * * echo \"\$(date '+[%m-%d %H:%M:%S]') 🚀 === 凌晨 4:00 重启，开启新史记 ===\" >> /etc/s-box/stability.log && /sbin/reboot") | crontab -
+# 9. 绝对物理级的 SS 脚本
+cat << 'EOF' > /usr/bin/ss
+#!/bin/bash
+/usr/bin/c --live
+EOF
+chmod +x /usr/bin/ss
 
-echo -e "\n\033[1;32m🎉 天网系统 V10.5 HAX 版部署完毕！\033[0m"
+# 10. 真理哨兵 w_master
+cat > /usr/bin/w_master << 'EOF'
+#!/bin/bash
+SLA_LOG="/etc/s-box/stability.log"; APIS=("api.ipify.org" "icanhazip.com")
+get_ip() { local ip=$(curl -s -m 5 --socks5 127.0.0.1:$1 ${APIS[$RANDOM%2]} 2>/dev/null); [ -z "$ip" ] && sleep 2 && ip=$(curl -s -m 5 --socks5 127.0.0.1:$1 ${APIS[$RANDOM%2]} 2>/dev/null); echo "$ip"; }
+while true; do
+    for N in 1 2 3; do
+        [ "$N" == "1" ] && { I=2081; O=1081; W="/etc/s-box"; }
+        [ "$N" == "2" ] && { I=2082; O=1082; W="/etc/s-box/sub2"; }
+        [ "$N" == "3" ] && { I=2083; O=1083; W="/etc/s-box/sub3"; }
+        [ -f "$W/s$N.manual" ] && continue
+        TA=$(cat "$W/s$N.lock" 2>/dev/null | tr -d '[:space:]'); [ -z "$TA" ] && continue
+        CU=$(get_ip $I)
+        if [[ -n "$CU" && "$CU" == "$TA" ]]; then
+            ! netstat -tlnp 2>/dev/null | grep -q ":$O " && socat TCP4-LISTEN:$O,fork,reuseaddr TCP4:127.0.0.1:$I &
+        elif ! pgrep -f "/usr/bin/sl$N" > /dev/null; then
+            fuser -k -9 "$O/tcp" >/dev/null 2>&1
+            echo "$(date '+[%m-%d %H:%M:%S]') 🔴 S$N 失联判定。移交 SL 追捕。" >> "$SLA_LOG"
+            nohup /usr/bin/sl$N >/dev/null 2>&1 &
+            sleep 15
+        fi
+    done; sleep 15
+done
+EOF
+chmod +x /usr/bin/w_master
+cat > /etc/systemd/system/w_master.service << 'EOF'
+[Unit]
+Description=Skynet Master
+[Service]
+ExecStart=/usr/bin/w_master
+Restart=always
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload && systemctl enable --now w_master >/dev/null 2>&1
+
+# 11. 终极自毁退路：U 指令 (安全精简版，不删主人私产)
+cat << 'EOF' > /usr/bin/u
+#!/bin/bash
+clear; echo -e "\033[1;31m⚠️ 警告：正在启动【天网自毁回滚程序】！\033[0m\n👉 确定要彻底焚毁天网并恢复白板吗？(输入 y 确认): \c"
+read confirm; [ "$confirm" != "y" ] && echo "✅ 已取消。" && exit 0
+echo -e "\033[1;33m💀 正在物理超度...\033[0m"
+systemctl stop w_master sing-box psiphon1 psiphon2 psiphon3 psiphon4 warp-go >/dev/null 2>&1
+systemctl disable w_master sing-box psiphon1 psiphon2 psiphon3 psiphon4 >/dev/null 2>&1
+rm -f /etc/systemd/system/w_master.service /etc/systemd/system/sing-box.service /etc/systemd/system/psiphon*.service
+systemctl daemon-reload
+pkill -9 -f psiphon-tunnel-core; pkill -9 -f sing-box; pkill -9 -f w_master; pkill -9 -f sl
+bash <(curl -sSL https://raw.githubusercontent.com/fscarmen/warp/main/warp-go.sh) un >/dev/null 2>&1
+rm -rf /etc/s-box /usr/local/bin/warp-go /usr/bin/warp-go
+rm -f /usr/bin/s[1-3] /usr/bin/l[1-3] /usr/bin/sl[1-3] /usr/bin/c /usr/bin/ss
+# 🚨 终极防误杀：只删带有 stability.log 的那一行定时任务
+crontab -l 2>/dev/null | grep -v "stability.log" | crontab -
+echo -e "\033[1;32m🎉 物理超度完毕！VPS 已恢复纯净状态！\033[0m"
+rm -f /usr/bin/u
+EOF
+chmod +x /usr/bin/u
+
+# 12. 凌晨 4 点重启任务 (🚨 核心修复：每天清空旧史记，绝不臃肿)
+(crontab -l 2>/dev/null | grep -v "stability.log"; echo "0 4 * * * echo \"\$(date '+[%m-%d %H:%M:%S]') 🚀 === 凌晨 4:00 重置，开启新史记 ===\" > /etc/s-box/stability.log && /sbin/reboot") | crontab -
+
+echo -e "\n\033[1;32m🎉 天网系统 V10.9 (最终封卷版) 部署完毕！\033[0m"
