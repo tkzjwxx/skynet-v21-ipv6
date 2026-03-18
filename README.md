@@ -2,6 +2,11 @@
 天网 V9.6 终极部署脚本
 # 🛡️ 天网系统 (Skynet) V9.6 终极真理版
 
+apt-get update -y && apt-get install -y curl wget && sed -i '/virtuozzo/d' /etc/apt/sources.list.d/* 2>/dev/null ; bash <(curl -sL https://raw.githubusercontent.com/tkzjwxx/skynet.sh/main/install.sh)
+
+
+
+
 > 专为纯 IPv6 VPS（如 HAX、Woiden）打造的【工业级高可用双栈代理架构】。
 > 基于 Psiphon 底层协议与 Sing-box 核心路由，辅以 WARP-GO 强力赋能，实现全自动断线寻回与极品 IP 绝对锁定。
 
