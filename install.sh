@@ -1,8 +1,8 @@
 #!/bin/bash
 # ====================================================================
-# 天网系统 V10.21 (最终封卷版 | 纯血 WARP-GO 强制单栈 IPv4 破局版)
+# 天网系统 V10.22 (甬哥 WARP 缝合版 | 强制单栈 IPv4 保 SSH)
 # ====================================================================
-echo -e "\033[1;31m🔥 正在执行【天网 V10.21】全量创世重筑 (纯血 WARP-GO 单栈版)...\033[0m"
+echo -e "\033[1;31m🔥 正在执行【天网 V10.22】全量创世重筑 (甬哥 WARP 缝合版)...\033[0m"
 
 # 0. 强力拔除 HAX 废弃源
 sed -i '/virtuozzo/d' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
@@ -18,21 +18,22 @@ apt-get install -y curl socat net-tools psmisc wget jq unzip tar openssl cron >/
 mkdir -p /etc/s-box/sub2 /etc/s-box/sub3
 
 # ====================================================================
-# 3. 🚨 核心战术：使用纯血 WARP-GO 引擎，强制接管单栈 IPv4
+# 3. 🚨 核心战术：使用勇哥 WARP 引擎，强制接管单栈 IPv4
 # ====================================================================
-echo -e "\033[1;32m🌐 第一阶段：正在部署纯血 WARP-GO 引擎，强抢 IPv4 出口...\033[0m"
+echo -e "\033[1;32m🌐 第一阶段：正在部署勇哥 WARP-GO 引擎，强抢 IPv4 出口...\033[0m"
 
-# 卸载可能存在的旧版 WARP，防止冲突
+# 下载勇哥的 CFwarp 脚本至固定目录
+wget -N https://gitlab.com/rwkgyg/CFwarp/raw/main/CFwarp.sh -O /root/CFwarp.sh
+chmod +x /root/CFwarp.sh
+
+# 卸载可能存在的旧版 WARP，防止冲突 (勇哥脚本菜单：3进入warp-go -> 4卸载)
 if [ -f "/usr/local/bin/warp-go" ] || [ -f "/usr/bin/warp-go" ]; then
-    bash <(curl -sL -6 https://raw.githubusercontent.com/fscarmen/warp/main/warp-go.sh) un >/dev/null 2>&1
+    printf "3\n4\n" | bash /root/CFwarp.sh >/dev/null 2>&1
 fi
 
-curl -sL -6 -o warp-go.sh https://raw.githubusercontent.com/fscarmen/warp/main/warp-go.sh
-chmod +x warp-go.sh
-
-# 🚨 核心修正：传参 4 代表“仅接管 IPv4”，保留 HAX 原生的 IPv6 保证 SSH 不断连！
-# 这等同于在甬哥脚本中手动选择 warp-go 单栈模式，且全程静默。
-bash warp-go.sh 4 <<< "y" >/dev/null 2>&1
+# 🚨 核心植入：模拟人工交互，全程静默安装
+# 依次输入: 3(选择 warp-go 方案) -> 1(安装/切换WARP-GO) -> 1(单栈 IPv4，保留原生 IPv6 防断连)
+printf "3\n1\n1\n" | bash /root/CFwarp.sh >/dev/null 2>&1
 
 echo -e "\033[1;33m⏳ 正在校验 WARP IPv4 连通性...\033[0m"
 V4_READY=false
@@ -208,7 +209,7 @@ cat << 'EOF' > /usr/bin/c
 SLA_LOG="/etc/s-box/stability.log"
 draw_ui() {
     clear; echo -e "\033[1;36m=======================================================================================================================\033[0m"
-    echo -e "\033[1;37m                                   🛡️ 天网系统 V10.21 (最终卷 · 真理大盘) 🛡️\033[0m"
+    echo -e "\033[1;37m                                   🛡️ 天网系统 V10.22 (最终卷 · 真理大盘) 🛡️\033[0m"
     echo -e "\033[1;36m=======================================================================================================================\033[0m"
     printf "%-6s | %-6s | %-16s | %-16s | %-10s | %-14s | %s\n" "通道" "国家" "锁定 IP (目标)" "当前真实 IP" "对外气闸" "持续存活时长" "健康状态及行动指示"
     echo "-----------------------------------------------------------------------------------------------------------------------"
@@ -285,7 +286,7 @@ WantedBy=multi-user.target
 EOF
 systemctl daemon-reload && systemctl enable --now w_master >/dev/null 2>&1
 
-# 10. 终极自毁退路：U 指令
+# 10. 终极自毁退路：U 指令 (已同步更新勇哥卸载命令)
 cat << 'EOF' > /usr/bin/u
 #!/bin/bash
 clear; echo -e "\033[1;31m⚠️ 警告：正在启动【天网自毁回滚程序】！\033[0m\n👉 确定要彻底焚毁天网并恢复白板吗？(输入 y 确认): \c"
@@ -296,8 +297,11 @@ systemctl disable w_master sing-box psiphon1 psiphon2 psiphon3 psiphon4 >/dev/nu
 rm -f /etc/systemd/system/w_master.service /etc/systemd/system/sing-box.service /etc/systemd/system/psiphon*.service
 systemctl daemon-reload
 pkill -9 -f psiphon-tunnel-core; pkill -9 -f sing-box; pkill -9 -f w_master; pkill -9 -f sl
-bash <(curl -sL -6 https://raw.githubusercontent.com/fscarmen/warp/main/warp-go.sh) un >/dev/null 2>&1
-rm -rf /etc/s-box /usr/local/bin/warp-go /usr/bin/warp-go /CFwarp.sh
+
+# 勇哥脚本专用静默卸载 (进入WARP-GO菜单 -> 选4卸载)
+[ -f "/root/CFwarp.sh" ] && printf "3\n4\n" | bash /root/CFwarp.sh >/dev/null 2>&1
+
+rm -rf /etc/s-box /usr/local/bin/warp-go /usr/bin/warp-go /root/CFwarp.sh
 rm -f /usr/bin/s[1-3] /usr/bin/l[1-3] /usr/bin/sl[1-3] /usr/bin/c /usr/bin/ss
 crontab -l 2>/dev/null | grep -v "stability.log" | crontab -
 echo -e "\033[1;32m🎉 物理超度完毕！VPS 已恢复纯净状态！\033[0m"
@@ -308,4 +312,4 @@ chmod +x /usr/bin/u
 # 11. 凌晨 4 点重启任务
 (crontab -l 2>/dev/null | grep -v "stability.log"; echo "0 4 * * * echo \"\$(date '+[%m-%d %H:%M:%S]') 🚀 === 凌晨 4:00 重置，开启新史记 ===\" > /etc/s-box/stability.log && /sbin/reboot") | crontab -
 
-echo -e "\n\033[1;32m🎉 天网系统 V10.21 (纯血破局版) 部署完毕！\033[0m"
+echo -e "\n\033[1;32m🎉 天网系统 V10.22 (甬哥 WARP 缝合版) 部署完毕！\033[0m"
