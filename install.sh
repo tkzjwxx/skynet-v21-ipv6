@@ -1,10 +1,10 @@
 #!/bin/bash
 # ====================================================================
-# 天网系统 V10.12 (最终封卷版 | 强力熔断·优质多源打捞)
+# 天网系统 V10.13 (版本对齐版 | 修复 404 死链·回归 v1.9.3 稳如老狗)
 # ====================================================================
-echo -e "\033[1;31m🔥 正在执行【天网 V10.12】全量创世重筑 (强力熔断防呆版)...\033[0m"
+echo -e "\033[1;31m🔥 正在执行【天网 V10.13】全量创世重筑 (修复死链版)...\033[0m"
 
-# 0. 强力拔除 HAX 废弃的 Virtuozzo 源
+# 0. 强力拔除 HAX 废弃源
 sed -i '/virtuozzo/d' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
 
 # 1. 清理旧环境
@@ -22,10 +22,11 @@ echo -e "\033[1;33m📦 正在打捞底层核心组件...\033[0m"
 wget -T 15 -t 3 -q --show-progress -O /etc/s-box/psiphon-tunnel-core https://raw.githubusercontent.com/Psiphon-Labs/psiphon-tunnel-core-binaries/master/linux/psiphon-tunnel-core-x86_64
 chmod +x /etc/s-box/psiphon-tunnel-core
 
-S_VER="1.11.0"
+# 🚨 致命修正：退回官方绝对存在的稳定版本 v1.9.3
+S_VER="1.9.3"
 S_PATH="SagerNet/sing-box/releases/download/v${S_VER}/sing-box-${S_VER}-linux-amd64.tar.gz"
 
-# 引入更强的高速镜像池
+# 使用三大高速镜像池
 URLS=(
     "https://ghfast.top/https://github.com/$S_PATH"
     "https://ghproxy.net/https://github.com/$S_PATH"
@@ -40,7 +41,7 @@ for url in "${URLS[@]}"; do
         tar -xzf /tmp/sbox.tar.gz -C /tmp/ && mv -f /tmp/sing-box-*/sing-box /etc/s-box/sing-box 2>/dev/null
         if [ -f /etc/s-box/sing-box ]; then
             chmod +x /etc/s-box/sing-box
-            echo -e "\033[1;32m✅ Sing-box 核心拉取并解压成功！\033[0m"
+            echo -e "\033[1;32m✅ Sing-box 核心 (v1.9.3) 拉取并解压成功！\033[0m"
             SUCCESS=true
             break
         fi
@@ -48,11 +49,10 @@ for url in "${URLS[@]}"; do
     echo -e "\033[1;31m⚠️ 当前源超时或失效，正在切换...\033[0m"
 done
 
-# 🚨 终极熔断：如果 Sing-box 下载失败，立即终止整个安装！
+# 熔断机制：如果下载失败，立即终止！
 if [ "$SUCCESS" = false ]; then
     echo -e "\n\033[1;41;37m 💀 致命错误：Sing-box 核心拉取失败！ \033[0m"
-    echo -e "\033[1;31mHAX 网络拦截了所有镜像节点。系统安装已强行终止，以防产生残次品。\033[0m"
-    echo -e "建议：等待几分钟后重试，或稍后尝试在其他时间段部署。"
+    echo -e "\033[1;31m所有的下载源均无法连接，请检查 VPS 的国际网络状态。\033[0m"
     exit 1
 fi
 
@@ -61,7 +61,6 @@ echo -e "\033[1;32m🌐 正在织入 WARP-GO 双栈网络 (官方静默模式)..
 wget -T 15 -t 3 -qN https://raw.githubusercontent.com/fscarmen/warp/main/warp-go.sh
 bash warp-go.sh d <<< "y" >/dev/null 2>&1
 
-# 🚨 二次熔断：检查 WARP 是否成功安装
 if [ ! -f "/usr/local/bin/warp-go" ] && [ ! -f "/usr/bin/warp-go" ]; then
     echo -e "\n\033[1;41;37m 💀 致命错误：WARP-GO 双栈网络引擎植入失败！ \033[0m"
     exit 1
@@ -190,7 +189,7 @@ cat << 'EOF' > /usr/bin/c
 SLA_LOG="/etc/s-box/stability.log"
 draw_ui() {
     clear; echo -e "\033[1;36m=======================================================================================================================\033[0m"
-    echo -e "\033[1;37m                                   🛡️ 天网系统 V10.12 (最终卷 · 真理大盘) 🛡️\033[0m"
+    echo -e "\033[1;37m                                   🛡️ 天网系统 V10.13 (最终卷 · 真理大盘) 🛡️\033[0m"
     echo -e "\033[1;36m=======================================================================================================================\033[0m"
     printf "%-6s | %-6s | %-16s | %-16s | %-10s | %-14s | %s\n" "通道" "国家" "锁定 IP (目标)" "当前真实 IP" "对外气闸" "持续存活时长" "健康状态及行动指示"
     echo "-----------------------------------------------------------------------------------------------------------------------"
@@ -290,4 +289,4 @@ chmod +x /usr/bin/u
 # 11. 凌晨 4 点重启任务
 (crontab -l 2>/dev/null | grep -v "stability.log"; echo "0 4 * * * echo \"\$(date '+[%m-%d %H:%M:%S]') 🚀 === 凌晨 4:00 重置，开启新史记 ===\" > /etc/s-box/stability.log && /sbin/reboot") | crontab -
 
-echo -e "\n\033[1;32m🎉 天网系统 V10.12 部署完毕！\033[0m"
+echo -e "\n\033[1;32m🎉 天网系统 V10.13 部署完毕！\033[0m"
