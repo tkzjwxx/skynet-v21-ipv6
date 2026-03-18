@@ -1,10 +1,13 @@
 #!/bin/bash
 # ====================================================================
-# 天网系统 V10.10 (最终封卷版 | 纯净无劫持·全境通·含自毁退路)
+# 天网系统 V10.11 (最终封卷版 | 屏蔽废源·防卡死轮询下载)
 # ====================================================================
-echo -e "\033[1;31m🔥 正在执行【天网 V10.10】全量创世重筑 (纯净本源版)...\033[0m"
+echo -e "\033[1;31m🔥 正在执行【天网 V10.11】全量创世重筑 (破冰防卡死版)...\033[0m"
 
-# 1. 清理环境 (干净整洁是稳定的基础)
+# 0. 强力拔除 HAX 废弃的 Virtuozzo 源 (消灭烦人的 update 报错)
+sed -i '/virtuozzo/d' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
+
+# 1. 清理环境
 systemctl stop psiphon1 psiphon2 psiphon3 psiphon4 sing-box w_master warp-go 2>/dev/null
 killall -9 w_master 2>/dev/null
 rm -rf /etc/s-box /usr/bin/c /usr/bin/ss /usr/bin/u /usr/bin/s[1-3] /usr/bin/l[1-3] /usr/bin/sl[1-3]
@@ -13,21 +16,34 @@ rm -rf /etc/s-box /usr/bin/c /usr/bin/ss /usr/bin/u /usr/bin/s[1-3] /usr/bin/l[1
 apt-get update -y && apt-get install -y curl socat net-tools psmisc wget jq unzip tar openssl cron >/dev/null 2>&1
 mkdir -p /etc/s-box/sub2 /etc/s-box/sub3
 
-# 3. 核心组件打捞 (双源容错，绝不断流)
-echo -e "\033[1;33m📦 正在打捞核心组件...\033[0m"
-wget -q --show-progress -O /etc/s-box/psiphon-tunnel-core https://raw.githubusercontent.com/Psiphon-Labs/psiphon-tunnel-core-binaries/master/linux/psiphon-tunnel-core-x86_64
+# 3. 核心组件打捞 (加入 10 秒超时强制熔断与三源轮询)
+echo -e "\033[1;33m📦 正在打捞核心组件 (防卡死机制已启动)...\033[0m"
+wget -T 10 -t 3 -q --show-progress -O /etc/s-box/psiphon-tunnel-core https://raw.githubusercontent.com/Psiphon-Labs/psiphon-tunnel-core-binaries/master/linux/psiphon-tunnel-core-x86_64
 chmod +x /etc/s-box/psiphon-tunnel-core
 
 S_VER="1.11.0"
-S_URL1="https://github.com/SagerNet/sing-box/releases/download/v${S_VER}/sing-box-${S_VER}-linux-amd64.tar.gz"
-S_URL2="https://ghp.ci/$S_URL1"
-wget -q --show-progress -O /tmp/sbox.tar.gz "$S_URL2" || wget -q --show-progress -O /tmp/sbox.tar.gz "$S_URL1"
-tar -xzf /tmp/sbox.tar.gz -C /tmp/ && mv -f /tmp/sing-box-*/sing-box /etc/s-box/sing-box && chmod +x /etc/s-box/sing-box
+S_PATH="SagerNet/sing-box/releases/download/v${S_VER}/sing-box-${S_VER}-linux-amd64.tar.gz"
+# 三大节点轮询，死磕到下载成功为止
+URLS=(
+    "https://mirror.ghproxy.com/https://github.com/$S_PATH"
+    "https://ghp.ci/https://github.com/$S_PATH"
+    "https://github.com/$S_PATH"
+)
+
+for url in "${URLS[@]}"; do
+    echo -e "正在尝试源: \033[1;36m$url\033[0m"
+    wget -T 10 -t 2 -q --show-progress -O /tmp/sbox.tar.gz "$url"
+    if [ -s /tmp/sbox.tar.gz ]; then
+        tar -xzf /tmp/sbox.tar.gz -C /tmp/ && mv -f /tmp/sing-box-*/sing-box /etc/s-box/sing-box && chmod +x /etc/s-box/sing-box
+        echo -e "\033[1;32m✅ Sing-box 核心拉取成功！\033[0m"
+        break
+    fi
+    echo -e "\033[1;31m⚠️ 当前源超时或失效，切换下一节点...\033[0m"
+done
 
 # 4. WARP-GO 终极静默双栈注入
 echo -e "\033[1;32m🌐 正在织入 WARP-GO 双栈网络 (官方静默模式)...\033[0m"
-wget -qN https://raw.githubusercontent.com/fscarmen/warp/main/warp-go.sh
-# 终极解法：传参 d (Dualstack) 并通过 <<< "y" 回答所有确认提示，杜绝跳菜单！
+wget -T 15 -t 3 -qN https://raw.githubusercontent.com/fscarmen/warp/main/warp-go.sh
 bash warp-go.sh d <<< "y" >/dev/null 2>&1
 
 # 5. 配置核心路由与气闸 (Sing-box)
@@ -85,7 +101,7 @@ WantedBy=multi-user.target
 SVC_EOF
     systemctl enable --now ${SVC} >/dev/null 2>&1
 
-    # S 引擎 (科技蓝)
+    # S 引擎
 cat << EOF > /usr/bin/s${NODE}
 #!/bin/bash
 DIR="$DIR"; IN="$IN"; SVC="$SVC"; SLA_LOG="/etc/s-box/stability.log"
@@ -109,7 +125,7 @@ else
 fi
 EOF
 
-    # L 引擎 (紫金尊贵)
+    # L 引擎
 cat << EOF > /usr/bin/l${NODE}
 #!/bin/bash
 DIR="$DIR"; IN="$IN"; SVC="$SVC"; SLA_LOG="/etc/s-box/stability.log"
@@ -123,7 +139,7 @@ IP=\$(curl -s -m 5 --socks5 127.0.0.1:\$IN api.ipify.org 2>/dev/null)
 if [ "\$IP" == "\$TAR" ]; then echo -e "\n\n\033[1;32m██████████████████████████████████████████████████████\n█   🎉 命中目标！死磕成功！\n█   🌟 极品 IP: \033[1;37m\$IP\033[1;32m\n██████████████████████████████████████████████████████\033[0m\n"; exit 0; fi; done
 EOF
 
-    # SL 后台引擎 (防端口冲突修复)
+    # SL 引擎
 cat << EOF > /usr/bin/sl${NODE}
 #!/bin/bash
 DIR="$DIR"; IN="$IN"; OUT="$OUT"; SVC="$SVC"; SLA_LOG="/etc/s-box/stability.log"
@@ -153,7 +169,7 @@ cat << 'EOF' > /usr/bin/c
 SLA_LOG="/etc/s-box/stability.log"
 draw_ui() {
     clear; echo -e "\033[1;36m=======================================================================================================================\033[0m"
-    echo -e "\033[1;37m                                   🛡️ 天网系统 V10.10 (最终卷 · 真理大盘) 🛡️\033[0m"
+    echo -e "\033[1;37m                                   🛡️ 天网系统 V10.11 (最终卷 · 真理大盘) 🛡️\033[0m"
     echo -e "\033[1;36m=======================================================================================================================\033[0m"
     printf "%-6s | %-6s | %-16s | %-16s | %-10s | %-14s | %s\n" "通道" "国家" "锁定 IP (目标)" "当前真实 IP" "对外气闸" "持续存活时长" "健康状态及行动指示"
     echo "-----------------------------------------------------------------------------------------------------------------------"
@@ -250,7 +266,7 @@ rm -f /usr/bin/u
 EOF
 chmod +x /usr/bin/u
 
-# 11. 凌晨 4 点重启任务 (🚨 核心修复：每天覆盖写入，绝不膨胀)
+# 11. 凌晨 4 点重启任务
 (crontab -l 2>/dev/null | grep -v "stability.log"; echo "0 4 * * * echo \"\$(date '+[%m-%d %H:%M:%S]') 🚀 === 凌晨 4:00 重置，开启新史记 ===\" > /etc/s-box/stability.log && /sbin/reboot") | crontab -
 
-echo -e "\n\033[1;32m🎉 天网系统 V10.10 (纯净版) 部署完毕！指令：c (大盘) | ss (实时) | u (卸载)\033[0m"
+echo -e "\n\033[1;32m🎉 天网系统 V10.11 部署完毕！\033[0m"
