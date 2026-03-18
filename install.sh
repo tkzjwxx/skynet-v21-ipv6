@@ -1,6 +1,6 @@
 #!/bin/bash
 # ====================================================================
-# 天网系统 V10.23 (甬哥 WARP 手工断点介入版)
+# 天网系统 V10.23 (甬哥 WARP 手工断点介入版 | 修复 GitHub 直链)
 # ====================================================================
 echo -e "\033[1;31m🔥 正在执行【天网 V10.23】全量创世重筑 (手工断点版)...\033[0m"
 
@@ -22,8 +22,8 @@ mkdir -p /etc/s-box/sub2 /etc/s-box/sub3
 # ====================================================================
 echo -e "\033[1;32m🌐 第一阶段：正在拉取勇哥 WARP 引擎...\033[0m"
 
-# 修复 GitLab 直链问题 (加入 /-/ 路径)
-wget -N https://gitlab.com/rwkgyg/CFwarp/-/raw/main/CFwarp.sh -O /root/CFwarp.sh
+# 🔥 核心修复：使用勇哥最新的 GitHub 官方仓库直链，放弃旧版 GitLab
+curl -sL -o /root/CFwarp.sh https://raw.githubusercontent.com/yonggekkk/warp-yg/main/CFwarp.sh
 chmod +x /root/CFwarp.sh
 
 # 🚨 核心断点：交出控制权，人工介入
