@@ -1,8 +1,8 @@
 #!/bin/bash
 # ====================================================================
-# 天网系统 V16 (Argo专供 | API 矩阵随机轮询防 403 + 正则过滤)
+# 天网系统 V19 (Argo专供 | S4 幽灵斥候增加黑名单一站式管理闭环)
 # ====================================================================
-echo -e "\033[1;31m🔥 正在执行【天网 V16】全量创世重筑...\033[0m"
+echo -e "\033[1;31m🔥 正在执行【天网 V19】全量创世重筑...\033[0m"
 
 # 0. 强力拔除 HAX 废弃源
 sed -i '/virtuozzo/d' /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null
@@ -137,7 +137,7 @@ PW="PsiphonUS_2026"
 
 clear
 echo -e "\033[1;36m=================================================================\033[0m"
-echo -e "\033[1;32m🎉 天网系统 V16 - 节点配置与 Cloudflare 隧道映射指南\033[0m"
+echo -e "\033[1;32m🎉 天网系统 V19 - 节点配置与 Cloudflare 隧道映射指南\033[0m"
 echo -e "\033[1;36m=================================================================\033[0m"
 
 echo -e "\n\033[1;35m【第一部分】Cloudflare Zero Trust 网页端隧道配置参数\033[0m"
@@ -191,7 +191,7 @@ SVC_EOF
 done
 
 # ====================================================================
-# 8. 写入战术快捷键 (全系引入 5 大 API 随机轮询 + IPv4 正则滤网)
+# 8. 写入各节点的独立战术快捷键 (1-3 号为主战区)
 # ====================================================================
 for NODE in 1 2 3; do
     [ "$NODE" == "1" ] && { IN_PORT=2081; OUT_PORT=1081; DIR="/etc/s-box"; REG="US"; SVC="psiphon1"; }
@@ -229,20 +229,36 @@ echo -e "  [1] 🎯 极品单抽    [2] 🎣 鱼塘连抽"
 echo -ne "\033[1;33m👉 模式 (默认1): \033[0m"; read m
 if [ "\$m" == "2" ]; then
     echo -ne "👉 连抽次数 (默认10): "; read c; [ -z "\$c" ] && c=10
+    echo -e "\n\033[1;36m🌊 启动鱼塘打捞作业...\033[0m"
     for ((i=1; i<=c; i++)); do
         echo -ne "\r\033[K\033[1;36m⏳ [\$i/\$c]\033[0m 抽卡中..."
-        systemctl stop "\$SVC" 2>/dev/null; fuser -k -9 "\$IN_PORT/tcp" >/dev/null 2>&1; rm -rf "\$DIR/ca.psiphon"* 2>/dev/null; systemctl start "\$SVC"; sleep 6
+        systemctl stop "\$SVC" 2>/dev/null; fuser -k -9 "\$IN_PORT/tcp" >/dev/null 2>&1; rm -rf "\$DIR/ca.psiphon"* 2>/dev/null; systemctl start "\$SVC"; sleep 8
         API=\${APIS[\$RANDOM % \${#APIS[@]}]}
         IP=\$(curl -s4 -m 5 --socks5 127.0.0.1:\$IN_PORT \$API 2>/dev/null | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | head -n 1)
-        [ -n "\$IP" ] && echo "\$IP" >> "\$DIR/tmp_pool.txt"
+        if [ -z "\$IP" ]; then
+            sleep 3
+            API=\${APIS[\$RANDOM % \${#APIS[@]}]}
+            IP=\$(curl -s4 -m 5 --socks5 127.0.0.1:\$IN_PORT \$API 2>/dev/null | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | head -n 1)
+        fi
+        if [ -n "\$IP" ]; then
+            echo "\$IP" >> "\$DIR/tmp_pool.txt"
+            echo -e "\n  └─ \033[1;32m✔ 成功入网: \$IP\033[0m"
+        else
+            echo -e "\n  └─ \033[1;31m✖ 节点超时失效\033[0m"
+        fi
     done
-    echo -e "\n\n\033[1;32m📊 鱼塘打捞结果:\033[0m"; sort "\$DIR/tmp_pool.txt" | uniq -c; rm -f "\$DIR/tmp_pool.txt"
+    echo -e "\n\n\033[1;32m📊 鱼塘打捞结果:\033[0m"; sort "\$DIR/tmp_pool.txt" 2>/dev/null | uniq -c | sort -nr; rm -f "\$DIR/tmp_pool.txt"
 else
     while true; do
         systemctl stop "\$SVC" 2>/dev/null; fuser -k -9 "\$IN_PORT/tcp" >/dev/null 2>&1; rm -rf "\$DIR/ca.psiphon"* 2>/dev/null; systemctl start "\$SVC"
-        echo -ne "\r\033[K\033[1;36m⏳ 正在盲抽...\033[0m"; sleep 7
+        echo -ne "\r\033[K\033[1;36m⏳ 正在盲抽...\033[0m"; sleep 8
         API=\${APIS[\$RANDOM % \${#APIS[@]}]}
         IP=\$(curl -s4 -m 5 --socks5 127.0.0.1:\$IN_PORT \$API 2>/dev/null | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | head -n 1)
+        if [ -z "\$IP" ]; then
+            sleep 3
+            API=\${APIS[\$RANDOM % \${#APIS[@]}]}
+            IP=\$(curl -s4 -m 5 --socks5 127.0.0.1:\$IN_PORT \$API 2>/dev/null | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | head -n 1)
+        fi
         [ -z "\$IP" ] && continue
         echo -e "\n\033[1;32m🎯 命中 IP: \033[1;37m\$IP\033[0m"
         echo -ne "\033[1;33m✨ 满意按 [Y] 锁定并开启气闸，按回车重抽: \033[0m"; read k
@@ -320,17 +336,38 @@ EOF
     chmod +x /usr/bin/sl${NODE}
 done
 
-# 写入旁路 S4
+# ====================================================================
+# [核心重构] S4 幽灵斥候 (加入黑名单 一站式 闭环管理 UI)
+# ====================================================================
 cat << 'EOF' > /usr/bin/s4
 #!/bin/bash
 DIR="/etc/s-box/sub4"; BLACKLIST_FILE="/etc/s-box/blacklist/bad_ips.txt"; SVC="psiphon4"; IN_PORT=2084
 APIS=("http://api.ipify.org" "http://icanhazip.com" "http://ifconfig.me/ip" "http://ident.me" "http://checkip.amazonaws.com"); touch "$BLACKLIST_FILE"
-trap 'echo -e "\n\033[1;33m🛑 已中止 S4 打捞作业。\033[0m"; exit 0' INT TERM EXIT HUP QUIT
-clear; echo -e "\033[1;36m   👻 [S4] 幽灵斥候 - 旁路洗号引擎 \033[0m\n   黑名单数: $(wc -l < $BLACKLIST_FILE 2>/dev/null || echo 0)\n"
-echo "  [1] 启动深海打捞   [2] 管理高级黑名单   [3] 退出"
-read -p "选择 (默认 1): " MENU_CHOICE; [ -z "$MENU_CHOICE" ] && MENU_CHOICE=1
-if [ "$MENU_CHOICE" == "2" ]; then
-    echo -e "\033[1;36m💡 输入 nano 一次性粘贴上千行！\033[0m"; read -p "输入 (回车退出): " INPUT_DATA
+trap 'echo -e "\n\033[1;33m🛑 已中止 S4 操作。\033[0m"; exit 0' INT TERM EXIT HUP QUIT
+
+clear; echo -e "\033[1;36m   👻 [S4] 幽灵斥候 - 旁路洗号引擎 \033[0m\n   当前黑名单拦截库: $(wc -l < $BLACKLIST_FILE 2>/dev/null || echo 0) 条\n"
+echo -e "  \033[1;32m[1] 🌊 启动深海打捞\033[0m     \033[1;33m[2] 📥 批量导入黑名单\033[0m"
+echo -e "  \033[1;34m[3] 📜 查看当前黑名单\033[0m   \033[1;31m[4] 🗑️ 清空全部黑名单\033[0m"
+echo -e "  \033[1;37m[0] 🚪 退出\033[0m"
+read -p "👉 请选择 (默认 1): " MENU_CHOICE; [ -z "$MENU_CHOICE" ] && MENU_CHOICE=1
+
+if [ "$MENU_CHOICE" == "0" ]; then
+    exit 0
+elif [ "$MENU_CHOICE" == "3" ]; then
+    echo -e "\n\033[1;36m📜 现存黑名单 IP 列表:\033[0m"
+    if [ -s "$BLACKLIST_FILE" ]; then 
+        cat "$BLACKLIST_FILE" | column
+    else 
+        echo -e "\033[1;90m(当前黑名单为空)\033[0m"
+    fi
+    echo -e "\n\033[1;32m✅ 查看完毕！\033[0m"
+    exit 0
+elif [ "$MENU_CHOICE" == "4" ]; then
+    > "$BLACKLIST_FILE"
+    echo -e "\n\033[1;31m💥 轰！所有黑名单数据已被彻底清空！\033[0m"
+    exit 0
+elif [ "$MENU_CHOICE" == "2" ]; then
+    echo -e "\033[1;36m💡 输入 nano 进入高级编辑模式，或直接粘贴 IP！\033[0m"; read -p "输入 (回车退出): " INPUT_DATA
     if [ "$INPUT_DATA" == "nano" ]; then nano "$BLACKLIST_FILE"; else for BAD_IP in $INPUT_DATA; do echo "$BAD_IP" >> "$BLACKLIST_FILE"; done; fi
     exit 0
 elif [ "$MENU_CHOICE" == "1" ]; then
@@ -340,13 +377,27 @@ elif [ "$MENU_CHOICE" == "1" ]; then
     [ "$REG_CHOICE" == "3" ] && sed -i 's/"EgressRegion": "[A-Z]*"/"EgressRegion": "JP"/' $DIR/base.config
     read -p "打捞次数 (默认 20): " SCAN_MAX; [ -z "$SCAN_MAX" ] && SCAN_MAX=20
     ATTEMPTS=0; VALID_IPS=()
+    echo -e "\n\033[1;36m🌊 启动幽灵侦查作业...\033[0m"
     while [ $ATTEMPTS -lt $SCAN_MAX ]; do
         ((ATTEMPTS++)); echo -ne "\r\033[K🔍 [$ATTEMPTS/$SCAN_MAX] 下网..."
         systemctl stop "$SVC" >/dev/null 2>&1; fuser -k -9 "$IN_PORT/tcp" >/dev/null 2>&1; rm -rf "$DIR/ca.psiphon"* >/dev/null 2>&1; systemctl start "$SVC"; sleep 8
+        
         API=${APIS[$RANDOM % ${#APIS[@]}]}
         IP=$(curl -s4 -m 5 --socks5 127.0.0.1:$IN_PORT $API 2>/dev/null | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | head -n 1)
+        if [ -z "$IP" ]; then
+            sleep 2
+            API=${APIS[$RANDOM % ${#APIS[@]}]}
+            IP=$(curl -s4 -m 5 --socks5 127.0.0.1:$IN_PORT $API 2>/dev/null | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | head -n 1)
+        fi
+
         if [ -n "$IP" ]; then
-            if grep -q "^${IP%.*}\|^\(${IP}\)" "$BLACKLIST_FILE" 2>/dev/null; then echo -e "\n🚫 触发黑名单: $IP"; else echo -e "\n🌟 捕获纯净极品: \033[1;32m$IP\033[0m"; VALID_IPS+=("$IP"); fi
+            if grep -q "^${IP%.*}\|^\(${IP}\)" "$BLACKLIST_FILE" 2>/dev/null; then 
+                echo -e "\n  ├─ 🚫 触发黑名单: $IP"
+            else 
+                echo -e "\n  └─ 🌟 捕获纯净极品: \033[1;32m$IP\033[0m"; VALID_IPS+=("$IP")
+            fi
+        else
+            echo -e "\n  ├─ \033[1;31m❌ 节点寻路超时，拉网失败\033[0m"
         fi
     done
     echo -e "\n\033[1;33m📊 打捞过滤后获得 ${#VALID_IPS[@]} 个极品。\033[0m"
@@ -369,7 +420,7 @@ APIS=("http://api.ipify.org" "http://icanhazip.com" "http://ifconfig.me/ip" "htt
 draw_dashboard() {
     clear
     echo -e "\033[1;36m=======================================================================================================================\033[0m"
-    echo -e "\033[1;37m                                   🛡️ 天网系统 V16 (全量生死录·API轮询版) 🛡️\033[0m"
+    echo -e "\033[1;37m                                   🛡️ 天网系统 V19 (全量生死录·S4黑名单一站式管理) 🛡️\033[0m"
     echo -e "\033[1;36m=======================================================================================================================\033[0m"
     printf "%-6s | %-6s | %-16s | %-16s | %-10s | %-14s | %s\n" "通道" "国家" "锁定 IP (目标)" "当前真实 IP" "对外气闸" "持续存活时长" "健康状态及行动指示"
     echo "-----------------------------------------------------------------------------------------------------------------------"
@@ -494,4 +545,4 @@ chmod +x /usr/bin/u
 # 11. 凌晨 4 点重启任务
 (crontab -l 2>/dev/null | grep -v "stability.log"; echo "0 4 * * * echo \"\$(date '+[%m-%d %H:%M:%S]') 🚀 === 凌晨 4:00 重置，开启新史记 ===\" > /etc/s-box/stability.log && /sbin/reboot") | crontab -
 
-echo -e "\n\033[1;32m🎉 天网系统 V16 部署完毕！再也不怕 API 封锁限流了！\033[0m"
+echo -e "\n\033[1;32m🎉 天网系统 V19 部署完毕！S4 旁路系统已进化为完全体！\033[0m"
